@@ -1,0 +1,28 @@
+.slider-container {
+    position: relative;
+}
+
+.slide {
+    height: auto !important;
+}
+
+.slide-content {
+    padding: 20px;
+    box-sizing: border-box;
+}
+
+.slick-slide {
+    height: auto !important;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.slick-list {
+    overflow: hidden;
+}
+
+.slick-track {
+    display: flex;
+    align-items: center;
+}
