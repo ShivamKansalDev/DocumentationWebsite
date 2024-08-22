@@ -193,8 +193,8 @@ export default function AddTopicModal(props: TopicModalProps) {
                                className="border py-1 px-4 bg-black text-white font-medium rounded-md">Add +</button>
                           </div>
                           <Dialog open={isOpen} onClose={() => setIsOpen(false)} className="relative z-50">
-                            <div className="fixed inset-0 flex w-screen items-center justify-center p-4">
-                              <DialogPanel className="max-w-lg space-y-4 border bg-white p-12">
+                            <div className="fixed inset-0 flex w-[100vh] mx-auto  p-4">
+                              <DialogPanel className="max-w-lg space-y-4 border bg-white p-6 flex justify-center flex-col">
                                 <h2 className="font-bold text-[20px]">Question and answer</h2>
                                <div>
                                 <input className="border outline-none mb-3 w-full p-2 rounded-sm" placeholder="Question"/>
