@@ -3,7 +3,8 @@
 import "slick-carousel/slick/slick.css";
 import "slick-carousel/slick/slick-theme.css";
 // import "./addTopicModal.css"
-import Dropzone from 'react-dropzone'
+// import Dropzone from 'react-dropzone'
+import Image from '../../../public/images/photo.jpeg'
 
 import SunEditor from "suneditor-react";
 import "suneditor/dist/css/suneditor.min.css";
@@ -22,6 +23,7 @@ import {
   template,
   textStyle,
   image,
+  video,
   link
 } from "suneditor/src/plugins";
 
@@ -99,11 +101,8 @@ export default function AddTopicModal(props: TopicModalProps) {
             transition
             className="relative transform overflow-hidden rounded-lg bg-white text-left shadow-xl transition-all data-[closed]:translate-y-4 data-[closed]:opacity-0 data-[enter]:duration-300 data-[leave]:duration-200 data-[enter]:ease-out data-[leave]:ease-in sm:my-8 sm:w-full sm:max-w-2xl data-[closed]:sm:translate-y-0 data-[closed]:sm:scale-95"
           >
-            {/* <DialogTitle>
-                            Form
-                        </DialogTitle> */}
             <div className="w-full h-[90vh] flex items-center justify-center">
-              <div className="w-[30%] p-5 h-full bg-gray-300 ">
+              <div className="w-[30%] p-5 h-full bg-gray-300 sidebar-model">
                 <ul>
                   {sliderDetails.map((sliderDetailsItem, index) => {
                     return (
@@ -115,15 +114,15 @@ export default function AddTopicModal(props: TopicModalProps) {
                         }}
                         key={sliderDetailsItem.id}
                         id={sliderDetailsItem.id}
-                        className={`my-5 mx-2 px-2 cursor-pointer `}
+                        className={`my-4 mx-2 px-2 py-1 cursor-pointer ${(index === currentSlide) ? 'bg-[#fff] text-[#000] rounded-md py-1': null}`}
                       >
-                        {sliderDetailsItem.name}
+                         {sliderDetailsItem.name}
                       </li>
                     );
                   })}
                 </ul>
               </div>
-              <div className="w-[70%] h-full">
+              <div className="w-[70%] h-full sidebar-right">
                 <div className="w-full h-full flex flex-col justify-between items-center">
                   <div className="w-full slider-container ">
                     <Slider className="h-full" ref={sliderRef} {...settings}>
@@ -131,7 +130,7 @@ export default function AddTopicModal(props: TopicModalProps) {
                         <p>Choose a type</p>
                         <div className="slide-content relative flex items-center justify-center h-[70vh]">
                           <div className="text-center">
-                            <select className="outline-none py-2 px-2 text-md border-2 border-gray-300 rounded-lg w-72 bg-white text-gray-700 hover:border-blue-500 focus:border-blue-500 focus:ring-blue-500">
+                            <select className="outline-none py-2 px-2 text-md border-2 border-gray-300 rounded-lg w-72 bg-white text-gray-700">
                               <option className="text-gray-400 py-2">
                                 Select a type
                               </option>
@@ -148,38 +147,36 @@ export default function AddTopicModal(props: TopicModalProps) {
                           </div>
                         </div>
                       </div>
-
                       <div className={`p-5 overflow-y-auto`}>
                         <p>Please Choose a Title</p>
                         <div className="slide-content relative flex items-center justify-center h-[70vh]">
                           <div className="text-center">
-                            <input className="outline-none py-2 px-2 text-md border-2 border-gray-300 rounded-lg w-72 bg-white text-gray-700 hover:border-blue-500 focus:border-blue-500 focus:ring-blue-500" placeholder="choose a title..."/>
+                            <input className="outline-none py-2 px-2 text-md border-2 border-gray-300 rounded-lg w-72 bg-white text-gray-700" placeholder="choose a title..."/>
                           </div>
                         </div>
                       </div>
-
-                      <div className={`p-5`}>
+                      <div className={`p-5 overflow-y-auto`}>
                         <div className="slide-content">
                             <div className="overflow-y-auto h-[26rem] mb-2">
-                              <div className="cursor-pointer shadow-md p-2 border mb-5 mx-2">
+                              <div className="cursor-pointer bg-white shadow-md p-2 border mb-5 mx-2">
                                 <h5 className="text-md font-semibold mb-2">Go from questioning to understanding.</h5>
                                 <p className="text-sm font-extralight">
                                     First you must start with dechlorinated water. Some aquarium salt. Simple goldfish food. Goldfish like vegataion some freshwater plants couldn't hurt. Goldfish are very simple and easy to keep. Just don't overfeed
                                 </p>
                               </div>
-                              <div className="cursor-pointer shadow-md p-2 border mb-5 mx-2">
+                              <div className="cursor-pointer bg-white shadow-md p-2 border mb-5 mx-2">
                                 <h5 className="text-md font-semibold mb-2">Go from questioning to understanding.</h5>
                                 <p className="text-sm font-extralight">
                                     First you must start with dechlorinated water. Some aquarium salt. Simple goldfish food. Goldfish like vegataion some freshwater plants couldn't hurt. Goldfish are very simple and easy to keep. Just don't overfeed
                                 </p>
                               </div>
-                              <div className="cursor-pointer shadow-md p-2 border mb-5 mx-2">
+                              <div className="cursor-pointer bg-white shadow-md p-2 border mb-5 mx-2">
                                 <h5 className="text-md font-semibold mb-2">Go from questioning to understanding.</h5>
                                 <p className="text-sm font-extralight">
                                     First you must start with dechlorinated water. Some aquarium salt. Simple goldfish food. Goldfish like vegataion some freshwater plants couldn't hurt. Goldfish are very simple and easy to keep. Just don't overfeed
                                 </p>
                               </div>
-                              <div className="cursor-pointer shadow-md p-2 border mb-5 mx-2">
+                              <div className="cursor-pointer bg-white shadow-md p-2 border mb-5 mx-2">
                                 <h5 className="text-md font-semibold mb-2">Go from questioning to understanding.</h5>
                                 <p className="text-sm font-extralight">
                                     First you must start with dechlorinated water. Some aquarium salt. Simple goldfish food. Goldfish like vegataion some freshwater plants couldn't hurt. Goldfish are very simple and easy to keep. Just don't overfeed
@@ -193,16 +190,15 @@ export default function AddTopicModal(props: TopicModalProps) {
                                className="border py-1 px-4 bg-black text-white font-medium rounded-md">Add +</button>
                           </div>
                           <Dialog open={isOpen} onClose={() => setIsOpen(false)} className="relative z-50">
-                            <div className="fixed inset-0 flex w-[100vh] mx-auto  p-4">
-                              <DialogPanel className="max-w-lg space-y-4 border bg-white p-6 flex justify-center flex-col">
-                                <h2 className="font-bold text-[20px]">Question and answer</h2>
+                            <div className="fixed inset-0 flex items-center justify-center mx-auto  p-4">
+                              <DialogPanel className="border bg-white p-6 flex justify-center flex-col w-[640px] h-[525px]">
+                                <h2 className="font-medium text-[20px] mb-5">Question and answer</h2>
                                <div>
                                 <input className="border outline-none mb-3 w-full p-2 rounded-sm" placeholder="Question"/>
-                               <div className="mb-3">
+                               <div className="mb-4">
                                <SunEditor
-                                  // hideToolbar={true}
+                                  height="40vh"
                                   setOptions={{
-                                    stickyToolbar: "",
                                     placeholder: "Enter your text here!!!",
                                     plugins: [
                                       align,
@@ -219,26 +215,20 @@ export default function AddTopicModal(props: TopicModalProps) {
                                       template,
                                       textStyle,
                                       image,
+                                      video,
                                       link
                                     ],
                                     buttonList: [
                                       ["undo", "redo"],
-                                      ["font", "fontSize", "formatBlock"],
-                                      ["paragraphStyle"],
                                       [
                                         "bold",
                                         "underline",
                                         "italic",
                                         "strike",
                                         "subscript",
-                                        "superscript"
+                                        "superscript",
+                                        "table", "link", "image","video","fontColor", "hiliteColor"
                                       ],
-                                      ["fontColor", "hiliteColor"],
-                                      ["removeFormat"],
-                                      "/",
-                                      ["outdent", "indent"],
-                                      ["align", "horizontalRule", "list", "lineHeight"],
-                                      ["table", "link", "image"]
                                     ],
                                     formats: ["p", "div", "h1", "h2", "h3", "h4", "h5", "h6"],
                                     font: [
@@ -259,7 +249,7 @@ export default function AddTopicModal(props: TopicModalProps) {
                                   }}
                                />
                                </div>
-                                <Dropzone>
+                                {/* <Dropzone>
                                   {({getRootProps, getInputProps}) => (
                                     <div {...getRootProps()} className="border w-full p-2 mb-3 cursor-pointer">
                                       <input {...getInputProps()} />
@@ -269,7 +259,7 @@ export default function AddTopicModal(props: TopicModalProps) {
                                       <span>Drag 'n' drop some files here, or click to select files</span>
                                     </div>
                                   )}
-                                </Dropzone>
+                                </Dropzone> */}
                                </div>
                                 <div className="flex justify-end gap-4">
                                 <button className="border bg-black text-white py-1 px-3 rounded-md" onClick={() => setIsOpen(false)}>Cancel</button>
@@ -279,36 +269,16 @@ export default function AddTopicModal(props: TopicModalProps) {
                             </div>
                           </Dialog>
                       </div>
-
-                      <div className="p-5 min-h-[80vh] max-h-[80vh] overflow-y-auto">
+                      <div className={`p-5 overflow-y-auto`}>
                         <div className="slide-content w-full">
-                          <div className="px-4 py-3 sm:flex sm:flex-row-reverse sm:px-6">
-                            <button
-                              type="button"
-                              onClick={() => {
-                                setOpen(false);
-                                setTimeout(() => {
-                                  setCurrentSlide(0);
-                                }, 200);
-                              }}
-                              className="inline-flex w-full justify-center rounded-md bg-red-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-red-500 sm:ml-3 sm:w-auto"
-                            >
-                              Deactivate
-                            </button>
-                            <button
-                              type="button"
-                              data-autofocus
-                              onClick={() => {
-                                setOpen(false);
-                                setTimeout(() => {
-                                  setCurrentSlide(0);
-                                }, 200);
-                              }}
-                              className="mt-3 inline-flex w-full justify-center rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 sm:mt-0 sm:w-auto"
-                            >
-                              Cancel
-                            </button>
-                          </div>
+                            <div className="overflow-y-auto h-[28rem] mb-2">
+                              <div className="cursor-pointer bg-white shadow-md p-2 border mb-5 mx-2">
+                                <h5 className="text-md font-semibold mb-2">React js</h5>
+                              </div>
+                              <div className="cursor-pointer bg-white shadow-md p-2 border mb-5 mx-2">
+                                 <img src={Image} alt="Image" className="w-full h-72 object-cover"/>
+                              </div>
+                            </div>
                         </div>
                       </div>
                     </Slider>
