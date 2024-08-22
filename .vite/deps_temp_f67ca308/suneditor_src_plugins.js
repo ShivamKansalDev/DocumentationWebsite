@@ -1,0 +1,50 @@
+import {
+  align_default,
+  audio_default,
+  blockquote_default,
+  fontColor_default,
+  fontSize_default,
+  font_default,
+  formatBlock_default,
+  hiliteColor_default,
+  horizontalRule_default,
+  imageGallery_default,
+  image_default,
+  init_plugins,
+  lineHeight_default,
+  link_default,
+  list_default,
+  math_default,
+  paragraphStyle_default,
+  plugins_default,
+  table_default,
+  template_default,
+  textStyle_default,
+  video_default
+} from "./chunk-GUAB4UCS.js";
+import "./chunk-PLDDJCW6.js";
+init_plugins();
+export {
+  align_default as align,
+  audio_default as audio,
+  blockquote_default as blockquote,
+  plugins_default as default,
+  font_default as font,
+  fontColor_default as fontColor,
+  fontSize_default as fontSize,
+  formatBlock_default as formatBlock,
+  hiliteColor_default as hiliteColor,
+  horizontalRule_default as horizontalRule,
+  image_default as image,
+  imageGallery_default as imageGallery,
+  lineHeight_default as lineHeight,
+  link_default as link,
+  list_default as list,
+  math_default as math,
+  paragraphStyle_default as paragraphStyle,
+  table_default as table,
+  template_default as template,
+  textStyle_default as textStyle,
+  video_default as video
+};
+//# sourceMappingURL=suneditor_src_plugins.js.map
