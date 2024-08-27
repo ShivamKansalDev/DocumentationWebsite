@@ -18,10 +18,14 @@ export default function ReactRouter() {
                 <Route path="/" element={<Login />} />
                 <Route path="/dashboard" element={<Dashboard />}>
                     {data.map((item:Topic) => {
+                        // console.log(item.link,'item');
+                        
                         return (
                             <Route path={item.link} key={item.type}>
                                 {
-                                    item.subheadings.map((subItem: Subheading) => {
+                                    item.subheadings.map((subItem: Subheading) => { 
+
+                        
                                         return (
                                             <Route path={subItem.subLink} element={<Page pageDetails={subItem} />} key={subItem.topic} />
                                         )
