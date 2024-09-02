@@ -1,6 +1,8 @@
 export interface TopicModalProps {
     open: boolean;
-    setOpen: React.Dispatch<React.SetStateAction<boolean>>
+    setOpen: React.Dispatch<React.SetStateAction<boolean>>;
+    add?: boolean;
+    edit?: boolean;
 }
 
 export interface SampleModalProps {

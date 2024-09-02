@@ -19,7 +19,8 @@ const MyCustomButton = forwardRef<
 });
 
 export default function Sidebar(sidebar: SidebarProps) {
-  const [open, setOpen] = useState(false);
+  const [add, setAdd] = useState(false);
+  const [edit, setEdit] = useState(false);
   const [iconsOpen, setIconsOpen] = useState(false);
   const [animate, setAnimate] = useState(false);
 
@@ -118,20 +119,24 @@ export default function Sidebar(sidebar: SidebarProps) {
             </button>
             <span
               className={`cursor-pointer z-10 px-2 py-2  material-symbols-outlined bg-slate-700 text-white flex items-center justify-center rounded-full ${iconsOpen? " -translate-x-0":"translate-x-12"} transition-transform ease-in-out duration-200`}
+              onClick={() => {
+                setEdit(!edit);
+              }}
             >
               edit
             </span>
             <span className={`cursor-pointer z-20 px-2 py-2 material-symbols-outlined bg-slate-700 text-white flex items-center justify-center rounded-full ${iconsOpen? "-translate-x-0":"translate-x-24"} transition-transform ease-in-out duration-200`}
-            onClick={() => {
-                setOpen(!open);
-                }}
+              onClick={() => {
+                setAdd(!add);
+              }}
             >
               add
             </span>
           </div>
         </div>
       </aside>
-      <AddTopicModal open={open} setOpen={setOpen} />
+      <AddTopicModal add={true} open={add} setOpen={setAdd} />
+      <AddTopicModal edit={true} open={edit} setOpen={setEdit} />
     </>
   );
 }

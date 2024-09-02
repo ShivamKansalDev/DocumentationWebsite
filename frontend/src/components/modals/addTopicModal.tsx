@@ -27,7 +27,7 @@ import {
   link,
 } from "suneditor/src/plugins";
 
-import { useEffect, useRef, useState } from "react";
+import { useRef, useState } from "react";
 import Slider from "react-slick";
 import { ChevronLeftIcon, ChevronRightIcon } from "@heroicons/react/16/solid";
 import type { LazyLoadTypes } from "react-slick";
@@ -35,25 +35,40 @@ import { TopicModalProps } from "../../types/components";
 import { Dialog, DialogBackdrop, DialogPanel } from "@headlessui/react";
 import data from "../../data/contents";
 
-// const MenuComponent = () => {
-//   return (
-//     <select>
-//       {data.map((item, index) => {
-//         return (
-//           <option key={index} value="">
-//             {item.type}
-//           </option>
-//         );
-//       })}
-//     </select>
-//   );
-// };
+const testQuestions = [
+  {
+    id: "1",
+    ques: "Go from questioning to understanding.",
+    ans: `First you must start with dechlorinated water.
+    Some aquarium salt. Simple goldfish food.
+    Goldfish like vegataion some freshwater plants
+    couldn't hurt. Goldfish are very simple and easy
+    to keep. Just don't overfeed`,
+    attachment: "",
+  },
+  {
+    id: "2",
+    ques: "Go from questioning to understanding.",
+    ans: `First you must start with dechlorinated water.
+    Some aquarium salt. Simple goldfish food.
+    Goldfish like vegataion some freshwater plants
+    couldn't hurt. Goldfish are very simple and easy
+    to keep. Just don't overfeed`,
+    attachment: "",
+  },
+];
 
 export default function AddTopicModal(props: TopicModalProps) {
   const { open, setOpen } = props;
   const [isOpen, setIsOpen] = useState(false);
+  const [typeAddOpen, setTypeAddOpen] = useState(false);
   const [selectType, setSelectType] = useState("");
+  const [selectTypeOpen, setSelectTypeOpen] = useState("");
+  const [editType, setEditType] = useState("");
+  const [editTypeOpen, setEditTypeOpen] = useState(false);
   const [selectTitle, setSelectTitle] = useState("");
+  const [editTitle, setEditTitle] = useState("");
+  const [questions, setQuestions] = useState(testQuestions);
 
   const sliderDetails = [
     { name: "Type", id: "type" },
@@ -130,10 +145,10 @@ export default function AddTopicModal(props: TopicModalProps) {
                       <div className={`p-5 overflow-y-auto`}>
                         <p>Choose a type</p>
                         <div className="slide-content relative flex items-center justify-center h-[70vh]">
-                          <div className="text-center">
+                          <div className="relative text-center">
                             <select
                               onChange={(e) => setSelectType(e.target.value)}
-                              className="outline-none py-2 px-2 text-md border-2 border-gray-300 rounded-lg w-72 bg-white text-gray-700"
+                              className="outline-none py-2 px-2 mb-3 text-md border-2 border-gray-300 rounded-lg w-72 bg-white text-gray-700"
                             >
                               <option value="" className="text-gray-400 py-2">
                                 Select a type
@@ -148,6 +163,87 @@ export default function AddTopicModal(props: TopicModalProps) {
                                 </option>
                               ))}
                             </select>
+                            {props.add && !props.edit && (
+                              <div className="absolute right-0 mt-2 cursor-pointer bg-black text-white flex items-center justify-center py-2 px-2 rounded-full">
+                                <span
+                                  className="material-symbols-outlined"
+                                  onClick={() => setTypeAddOpen(!typeAddOpen)}
+                                >
+                                  add
+                                </span>
+                              </div>
+                            )}
+                            {!props.add && props.edit && (
+                              <>
+                                <div className="absolute right-0 mt-2 cursor-pointer bg-black text-white flex items-center justify-center py-1 px-2 rounded-md">
+                                  {   editType ? (
+                                    <button
+                                      onClick={() =>
+                                        setEditTypeOpen(editTypeOpen)
+                                      }
+                                    >
+                                      Save
+                                    </button>
+                                  ) : (
+                                    <button
+                                      onClick={() =>
+                                        setEditTypeOpen(!editTypeOpen)
+                                      }
+                                    >
+                                      Edit
+                                    </button>
+                                  )}
+                                </div>
+                                {editTypeOpen && (
+                                  <input
+                                    className="w-72 outline-none py-2 px-2 text-md border-2 border-gray-300 rounded-lg bg-white text-gray-700"
+                                    placeholder="Enter a type..."
+                                    onChange={(e) =>
+                                      setEditType(e.target.value)
+                                    }
+                                  />
+                                )}
+                              </>
+                            )}
+                            <Dialog
+                              open={typeAddOpen}
+                              onClose={() => setTypeAddOpen(typeAddOpen)}
+                              className="relative z-50"
+                            >
+                              <div className="fixed inset-0 flex items-center justify-center mx-auto  p-4">
+                                <DialogPanel className="rounded-md border bg-white p-6 flex-col w-80 h-40">
+                                  <p className="mb-2">Choose a type</p>
+                                  <div>
+                                    <input
+                                      value={selectTypeOpen}
+                                      className="w-full outline-none py-2 px-2 mb-3 text-md border-2 border-gray-300 rounded-lg bg-white text-gray-700"
+                                      placeholder="Enter a type..."
+                                      onChange={(e) =>
+                                        setSelectTypeOpen(e.target.value)
+                                      }
+                                    />
+                                    <div className="flex gap-2 justify-end">
+                                      <button
+                                        className="border bg-black text-white py-1 px-3 rounded-md"
+                                        onClick={() =>
+                                          setTypeAddOpen(!typeAddOpen)
+                                        }
+                                      >
+                                        Cancel
+                                      </button>
+                                      <button
+                                        className="border bg-black text-white py-1 px-3 rounded-md"
+                                        onClick={() =>
+                                          setTypeAddOpen(!typeAddOpen)
+                                        }
+                                      >
+                                        Save
+                                      </button>
+                                    </div>
+                                  </div>
+                                </DialogPanel>
+                              </div>
+                            </Dialog>
                           </div>
                         </div>
                       </div>
@@ -166,54 +262,21 @@ export default function AddTopicModal(props: TopicModalProps) {
                       <div className={`p-5 overflow-y-auto`}>
                         <div className="slide-content">
                           <div className="overflow-y-auto h-[26rem] mb-2">
-                            <div className="cursor-pointer bg-white shadow-md p-2 border mb-5 mx-2">
-                              <h5 className="text-md font-semibold mb-2">
-                                Go from questioning to understanding.
-                              </h5>
-                              <p className="text-sm font-extralight">
-                                First you must start with dechlorinated water.
-                                Some aquarium salt. Simple goldfish food.
-                                Goldfish like vegataion some freshwater plants
-                                couldn't hurt. Goldfish are very simple and easy
-                                to keep. Just don't overfeed
-                              </p>
-                            </div>
-                            <div className="cursor-pointer bg-white shadow-md p-2 border mb-5 mx-2">
-                              <h5 className="text-md font-semibold mb-2">
-                                Go from questioning to understanding.
-                              </h5>
-                              <p className="text-sm font-extralight">
-                                First you must start with dechlorinated water.
-                                Some aquarium salt. Simple goldfish food.
-                                Goldfish like vegataion some freshwater plants
-                                couldn't hurt. Goldfish are very simple and easy
-                                to keep. Just don't overfeed
-                              </p>
-                            </div>
-                            <div className="cursor-pointer bg-white shadow-md p-2 border mb-5 mx-2">
-                              <h5 className="text-md font-semibold mb-2">
-                                Go from questioning to understanding.
-                              </h5>
-                              <p className="text-sm font-extralight">
-                                First you must start with dechlorinated water.
-                                Some aquarium salt. Simple goldfish food.
-                                Goldfish like vegataion some freshwater plants
-                                couldn't hurt. Goldfish are very simple and easy
-                                to keep. Just don't overfeed
-                              </p>
-                            </div>
-                            <div className="cursor-pointer bg-white shadow-md p-2 border mb-5 mx-2">
-                              <h5 className="text-md font-semibold mb-2">
-                                Go from questioning to understanding.
-                              </h5>
-                              <p className="text-sm font-extralight">
-                                First you must start with dechlorinated water.
-                                Some aquarium salt. Simple goldfish food.
-                                Goldfish like vegataion some freshwater plants
-                                couldn't hurt. Goldfish are very simple and easy
-                                to keep. Just don't overfeed
-                              </p>
-                            </div>
+                            {questions.map((item) => {
+                              return (
+                                <div
+                                  key={`ques${item.id}`}
+                                  className="cursor-pointer bg-white shadow-md p-2 border mb-5 mx-2"
+                                >
+                                  <h5 className="text-md font-semibold mb-2">
+                                    {item.ques}
+                                  </h5>
+                                  <p className="text-sm font-extralight">
+                                    {item.ans}
+                                  </p>
+                                </div>
+                              );
+                            })}
                           </div>
                         </div>
                         <div className="flex justify-end">
@@ -383,7 +446,32 @@ export default function AddTopicModal(props: TopicModalProps) {
                             : ""
                         }`}
                         onClick={() => {
-                          if (sliderRef.current && selectType) {
+                          if (sliderRef.current) {
+                            if (!selectType && currentSlide === 0) {
+                              return;
+                            } else if (!selectTitle && currentSlide === 1) {
+                              return;
+                            } else if (
+                              questions.length === 0 &&
+                              currentSlide === 2
+                            ) {
+                              return;
+                            }
+                            if (props.edit) {
+                              if (currentSlide === 0) {
+                                if (!!editType) {
+                                  // Call API
+                                  sliderRef.current.slickNext();
+                                  return;
+                                }
+                              } else if (currentSlide === 1) {
+                                if (!!editTitle) {
+                                  // Call API
+                                  sliderRef.current.slickNext();
+                                  return;
+                                }
+                              }
+                            }
                             sliderRef.current.slickNext();
                           }
                         }}
