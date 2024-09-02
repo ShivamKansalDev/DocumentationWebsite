@@ -1,6 +1,6 @@
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 // import LoginBG from "./pages/login/index";
-// import Login from "./pages/login/login";
+import Login from "./pages/login/login";
 
 // dashboard
 import Dashboard from "./pages/dashboard";
@@ -15,10 +15,8 @@ export default function ReactRouter() {
     return (
         <BrowserRouter>
             <Routes>
-                {/* <Route path="/" element={<LoginBG />}>
-                    <Route path="/" element={<Login />} />
-                </Route> */}
-                <Route path="/" element={<Dashboard />}>
+                <Route path="/" element={<Login />} />
+                <Route path="/dashboard" element={<Dashboard />}>
                     {data.map((item:Topic) => {
                         return (
                             <Route path={item.link} key={item.type}>
@@ -32,7 +30,6 @@ export default function ReactRouter() {
                             </Route>
                         )
                     })}
-                    <Route path="/aman-mam" element={<Page />} />
                 </Route>
             </Routes>
         </BrowserRouter>
