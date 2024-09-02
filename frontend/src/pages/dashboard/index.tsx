@@ -6,12 +6,12 @@ export default function Dashboard() {
     const width = ["w-[20%]", "w-[80%]"];
     return (
         <div>
-            <Header />
             <div className='flex items-stretch justify-start'>
                 <div className={`${width[0]}`}>
                     <Sidebar sidebarWidth={width[0]} />
                 </div>
-                <div className={`${width[1]} p-4`}>
+                <div className={`${width[1]}`}>
+                    <Header />
                     <Outlet />
                 </div>
             </div>

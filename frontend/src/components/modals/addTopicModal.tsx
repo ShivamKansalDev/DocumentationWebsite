@@ -4,7 +4,7 @@ import "slick-carousel/slick/slick.css";
 import "slick-carousel/slick/slick-theme.css";
 // import "./addTopicModal.css"
 // import Dropzone from 'react-dropzone'
-import Image from '../../../public/images/photo.jpeg'
+import Image from "../../../public/images/photo.jpeg";
 
 import SunEditor from "suneditor-react";
 import "suneditor/dist/css/suneditor.min.css";
@@ -24,39 +24,51 @@ import {
   textStyle,
   image,
   video,
-  link
+  link,
 } from "suneditor/src/plugins";
-
 
 import { useRef, useState } from "react";
 import Slider from "react-slick";
 import { ChevronLeftIcon, ChevronRightIcon } from "@heroicons/react/16/solid";
 import type { LazyLoadTypes } from "react-slick";
 import { TopicModalProps } from "../../types/components";
-import {
-  Dialog,
-  DialogBackdrop,
-  DialogPanel
-} from "@headlessui/react";
+import { Dialog, DialogBackdrop, DialogPanel } from "@headlessui/react";
 import data from "../../data/contents";
 
-// const MenuComponent = () => {
-//   return (
-//     <select>
-//       {data.map((item, index) => {
-//         return (
-//           <option key={index} value="">
-//             {item.type}
-//           </option>
-//         );
-//       })}
-//     </select>
-//   );
-// };
+const testQuestions = [
+  {
+    id: "1",
+    ques: "Go from questioning to understanding.",
+    ans: `First you must start with dechlorinated water.
+    Some aquarium salt. Simple goldfish food.
+    Goldfish like vegataion some freshwater plants
+    couldn't hurt. Goldfish are very simple and easy
+    to keep. Just don't overfeed`,
+    attachment: "",
+  },
+  {
+    id: "2",
+    ques: "Go from questioning to understanding.",
+    ans: `First you must start with dechlorinated water.
+    Some aquarium salt. Simple goldfish food.
+    Goldfish like vegataion some freshwater plants
+    couldn't hurt. Goldfish are very simple and easy
+    to keep. Just don't overfeed`,
+    attachment: "",
+  },
+];
 
 export default function AddTopicModal(props: TopicModalProps) {
   const { open, setOpen } = props;
   const [isOpen, setIsOpen] = useState(false);
+  const [typeAddOpen, setTypeAddOpen] = useState(false);
+  const [selectType, setSelectType] = useState("");
+  const [selectTypeOpen, setSelectTypeOpen] = useState("");
+  const [editType, setEditType] = useState("");
+  const [editTypeOpen, setEditTypeOpen] = useState(false);
+  const [selectTitle, setSelectTitle] = useState("");
+  const [editTitle, setEditTitle] = useState("");
+  const [questions, setQuestions] = useState(testQuestions);
 
   const sliderDetails = [
     { name: "Type", id: "type" },
@@ -114,9 +126,13 @@ export default function AddTopicModal(props: TopicModalProps) {
                         }}
                         key={sliderDetailsItem.id}
                         id={sliderDetailsItem.id}
-                        className={`my-4 mx-2 px-2 py-1 cursor-pointer ${(index === currentSlide) ? 'bg-[#fff] text-[#000] rounded-md py-1': null}`}
+                        className={`my-4 mx-2 px-2 py-1 cursor-pointer ${
+                          index === currentSlide
+                            ? "bg-[#fff] text-[#000] rounded-md py-1"
+                            : null
+                        }`}
                       >
-                         {sliderDetailsItem.name}
+                        {sliderDetailsItem.name}
                       </li>
                     );
                   })}
@@ -129,21 +145,105 @@ export default function AddTopicModal(props: TopicModalProps) {
                       <div className={`p-5 overflow-y-auto`}>
                         <p>Choose a type</p>
                         <div className="slide-content relative flex items-center justify-center h-[70vh]">
-                          <div className="text-center">
-                            <select className="outline-none py-2 px-2 text-md border-2 border-gray-300 rounded-lg w-72 bg-white text-gray-700">
-                              <option className="text-gray-400 py-2">
+                          <div className="relative text-center">
+                            <select
+                              onChange={(e) => setSelectType(e.target.value)}
+                              className="outline-none py-2 px-2 mb-3 text-md border-2 border-gray-300 rounded-lg w-72 bg-white text-gray-700"
+                            >
+                              <option value="" className="text-gray-400 py-2">
                                 Select a type
                               </option>
                               {data.map((item, index) => (
                                 <option
                                   key={index}
                                   value={item.type}
-                                  className="bg-white hover:bg-gray-100 py-2 fo"
+                                  className="bg-white hover:bg-gray-100 py-2"
                                 >
                                   {item.type}
                                 </option>
                               ))}
                             </select>
+                            {props.add && !props.edit && (
+                              <div className="absolute right-0 mt-2 cursor-pointer bg-black text-white flex items-center justify-center py-2 px-2 rounded-full">
+                                <span
+                                  className="material-symbols-outlined"
+                                  onClick={() => setTypeAddOpen(!typeAddOpen)}
+                                >
+                                  add
+                                </span>
+                              </div>
+                            )}
+                            {!props.add && props.edit && (
+                              <>
+                                <div className="absolute right-0 mt-2 cursor-pointer bg-black text-white flex items-center justify-center py-1 px-2 rounded-md">
+                                  {   editType ? (
+                                    <button
+                                      onClick={() =>
+                                        setEditTypeOpen(editTypeOpen)
+                                      }
+                                    >
+                                      Save
+                                    </button>
+                                  ) : (
+                                    <button
+                                      onClick={() =>
+                                        setEditTypeOpen(!editTypeOpen)
+                                      }
+                                    >
+                                      Edit
+                                    </button>
+                                  )}
+                                </div>
+                                {editTypeOpen && (
+                                  <input
+                                    className="w-72 outline-none py-2 px-2 text-md border-2 border-gray-300 rounded-lg bg-white text-gray-700"
+                                    placeholder="Enter a type..."
+                                    onChange={(e) =>
+                                      setEditType(e.target.value)
+                                    }
+                                  />
+                                )}
+                              </>
+                            )}
+                            <Dialog
+                              open={typeAddOpen}
+                              onClose={() => setTypeAddOpen(typeAddOpen)}
+                              className="relative z-50"
+                            >
+                              <div className="fixed inset-0 flex items-center justify-center mx-auto  p-4">
+                                <DialogPanel className="rounded-md border bg-white p-6 flex-col w-80 h-40">
+                                  <p className="mb-2">Choose a type</p>
+                                  <div>
+                                    <input
+                                      value={selectTypeOpen}
+                                      className="w-full outline-none py-2 px-2 mb-3 text-md border-2 border-gray-300 rounded-lg bg-white text-gray-700"
+                                      placeholder="Enter a type..."
+                                      onChange={(e) =>
+                                        setSelectTypeOpen(e.target.value)
+                                      }
+                                    />
+                                    <div className="flex gap-2 justify-end">
+                                      <button
+                                        className="border bg-black text-white py-1 px-3 rounded-md"
+                                        onClick={() =>
+                                          setTypeAddOpen(!typeAddOpen)
+                                        }
+                                      >
+                                        Cancel
+                                      </button>
+                                      <button
+                                        className="border bg-black text-white py-1 px-3 rounded-md"
+                                        onClick={() =>
+                                          setTypeAddOpen(!typeAddOpen)
+                                        }
+                                      >
+                                        Save
+                                      </button>
+                                    </div>
+                                  </div>
+                                </DialogPanel>
+                              </div>
+                            </Dialog>
                           </div>
                         </div>
                       </div>
@@ -151,104 +251,125 @@ export default function AddTopicModal(props: TopicModalProps) {
                         <p>Please Choose a Title</p>
                         <div className="slide-content relative flex items-center justify-center h-[70vh]">
                           <div className="text-center">
-                            <input className="outline-none py-2 px-2 text-md border-2 border-gray-300 rounded-lg w-72 bg-white text-gray-700" placeholder="choose a title..."/>
+                            <input
+                              className="outline-none py-2 px-2 text-md border-2 border-gray-300 rounded-lg w-72 bg-white text-gray-700"
+                              placeholder="choose a title..."
+                              onChange={(e) => setSelectTitle(e.target.value)}
+                            />
                           </div>
                         </div>
                       </div>
                       <div className={`p-5 overflow-y-auto`}>
                         <div className="slide-content">
-                            <div className="overflow-y-auto h-[26rem] mb-2">
-                              <div className="cursor-pointer bg-white shadow-md p-2 border mb-5 mx-2">
-                                <h5 className="text-md font-semibold mb-2">Go from questioning to understanding.</h5>
-                                <p className="text-sm font-extralight">
-                                    First you must start with dechlorinated water. Some aquarium salt. Simple goldfish food. Goldfish like vegataion some freshwater plants couldn't hurt. Goldfish are very simple and easy to keep. Just don't overfeed
-                                </p>
-                              </div>
-                              <div className="cursor-pointer bg-white shadow-md p-2 border mb-5 mx-2">
-                                <h5 className="text-md font-semibold mb-2">Go from questioning to understanding.</h5>
-                                <p className="text-sm font-extralight">
-                                    First you must start with dechlorinated water. Some aquarium salt. Simple goldfish food. Goldfish like vegataion some freshwater plants couldn't hurt. Goldfish are very simple and easy to keep. Just don't overfeed
-                                </p>
-                              </div>
-                              <div className="cursor-pointer bg-white shadow-md p-2 border mb-5 mx-2">
-                                <h5 className="text-md font-semibold mb-2">Go from questioning to understanding.</h5>
-                                <p className="text-sm font-extralight">
-                                    First you must start with dechlorinated water. Some aquarium salt. Simple goldfish food. Goldfish like vegataion some freshwater plants couldn't hurt. Goldfish are very simple and easy to keep. Just don't overfeed
-                                </p>
-                              </div>
-                              <div className="cursor-pointer bg-white shadow-md p-2 border mb-5 mx-2">
-                                <h5 className="text-md font-semibold mb-2">Go from questioning to understanding.</h5>
-                                <p className="text-sm font-extralight">
-                                    First you must start with dechlorinated water. Some aquarium salt. Simple goldfish food. Goldfish like vegataion some freshwater plants couldn't hurt. Goldfish are very simple and easy to keep. Just don't overfeed
-                                </p>
-                              </div>
-                            </div>
-                         </div>
-                         <div className="flex justify-end">
-                              <button  
-                               onClick={()=>setIsOpen(true)}
-                               className="border py-1 px-4 bg-black text-white font-medium rounded-md">Add +</button>
+                          <div className="overflow-y-auto h-[26rem] mb-2">
+                            {questions.map((item) => {
+                              return (
+                                <div
+                                  key={`ques${item.id}`}
+                                  className="cursor-pointer bg-white shadow-md p-2 border mb-5 mx-2"
+                                >
+                                  <h5 className="text-md font-semibold mb-2">
+                                    {item.ques}
+                                  </h5>
+                                  <p className="text-sm font-extralight">
+                                    {item.ans}
+                                  </p>
+                                </div>
+                              );
+                            })}
                           </div>
-                          <Dialog open={isOpen} onClose={() => setIsOpen(false)} className="relative z-50">
-                            <div className="fixed inset-0 flex items-center justify-center mx-auto  p-4">
-                              <DialogPanel className="border bg-white p-6 flex justify-center flex-col w-[640px] h-[525px]">
-                                <h2 className="font-medium text-[20px] mb-5">Question and answer</h2>
-                               <div>
-                                <input className="border outline-none mb-3 w-full p-2 rounded-sm" placeholder="Question"/>
-                               <div className="mb-4">
-                               <SunEditor
-                                  height="40vh"
-                                  setOptions={{
-                                    placeholder: "Enter your text here!!!",
-                                    plugins: [
-                                      align,
-                                      font,
-                                      fontColor,
-                                      fontSize,
-                                      formatBlock,
-                                      hiliteColor,
-                                      horizontalRule,
-                                      lineHeight,
-                                      list,
-                                      paragraphStyle,
-                                      table,
-                                      template,
-                                      textStyle,
-                                      image,
-                                      video,
-                                      link
-                                    ],
-                                    buttonList: [
-                                      ["undo", "redo"],
-                                      [
-                                        "bold",
-                                        "underline",
-                                        "italic",
-                                        "strike",
-                                        "subscript",
-                                        "superscript",
-                                        "table", "link", "image","video","fontColor", "hiliteColor"
+                        </div>
+                        <div className="flex justify-end">
+                          <button
+                            onClick={() => setIsOpen(true)}
+                            className="border py-1 px-4 bg-black text-white font-medium rounded-md"
+                          >
+                            Add +
+                          </button>
+                        </div>
+                        <Dialog
+                          open={isOpen}
+                          onClose={() => setIsOpen(false)}
+                          className="relative z-50"
+                        >
+                          <div className="fixed inset-0 flex items-center justify-center mx-auto  p-4">
+                            <DialogPanel className="border bg-white p-6 flex justify-center flex-col w-[640px] h-[525px]">
+                              <h2 className="font-medium text-[20px] mb-5">
+                                Question and answer
+                              </h2>
+                              <div>
+                                <input
+                                  className="border outline-none mb-3 w-full p-2 rounded-sm"
+                                  placeholder="Question"
+                                />
+                                <div className="mb-4">
+                                  <SunEditor
+                                    height="40vh"
+                                    setOptions={{
+                                      placeholder: "Enter your text here!!!",
+                                      plugins: [
+                                        align,
+                                        font,
+                                        fontColor,
+                                        fontSize,
+                                        formatBlock,
+                                        hiliteColor,
+                                        horizontalRule,
+                                        lineHeight,
+                                        list,
+                                        paragraphStyle,
+                                        table,
+                                        template,
+                                        textStyle,
+                                        image,
+                                        video,
+                                        link,
                                       ],
-                                    ],
-                                    formats: ["p", "div", "h1", "h2", "h3", "h4", "h5", "h6"],
-                                    font: [
-                                      "Arial",
-                                      "Calibri",
-                                      "Comic Sans",
-                                      "Courier",
-                                      "Garamond",
-                                      "Georgia",
-                                      "Impact",
-                                      "Lucida Console",
-                                      "Palatino Linotype",
-                                      "Segoe UI",
-                                      "Tahoma",
-                                      "Times New Roman",
-                                      "Trebuchet MS"
-                                    ]
-                                  }}
-                               />
-                               </div>
+                                      buttonList: [
+                                        ["undo", "redo"],
+                                        [
+                                          "bold",
+                                          "underline",
+                                          "italic",
+                                          "strike",
+                                          "subscript",
+                                          "superscript",
+                                          "table",
+                                          "link",
+                                          "image",
+                                          "video",
+                                          "fontColor",
+                                          "hiliteColor",
+                                        ],
+                                      ],
+                                      formats: [
+                                        "p",
+                                        "div",
+                                        "h1",
+                                        "h2",
+                                        "h3",
+                                        "h4",
+                                        "h5",
+                                        "h6",
+                                      ],
+                                      font: [
+                                        "Arial",
+                                        "Calibri",
+                                        "Comic Sans",
+                                        "Courier",
+                                        "Garamond",
+                                        "Georgia",
+                                        "Impact",
+                                        "Lucida Console",
+                                        "Palatino Linotype",
+                                        "Segoe UI",
+                                        "Tahoma",
+                                        "Times New Roman",
+                                        "Trebuchet MS",
+                                      ],
+                                    }}
+                                  />
+                                </div>
                                 {/* <Dropzone>
                                   {({getRootProps, getInputProps}) => (
                                     <div {...getRootProps()} className="border w-full p-2 mb-3 cursor-pointer">
@@ -260,25 +381,41 @@ export default function AddTopicModal(props: TopicModalProps) {
                                     </div>
                                   )}
                                 </Dropzone> */}
-                               </div>
-                                <div className="flex justify-end gap-4">
-                                <button className="border bg-black text-white py-1 px-3 rounded-md" onClick={() => setIsOpen(false)}>Cancel</button>
-                                  <button className="border bg-black text-white py-1 px-3 rounded-md" onClick={() => setIsOpen(false)}>Save</button>
-                                </div>
-                              </DialogPanel>
-                            </div>
-                          </Dialog>
+                              </div>
+                              <div className="flex justify-end gap-4">
+                                <button
+                                  className="border bg-black text-white py-1 px-3 rounded-md"
+                                  onClick={() => setIsOpen(false)}
+                                >
+                                  Cancel
+                                </button>
+                                <button
+                                  className="border bg-black text-white py-1 px-3 rounded-md"
+                                  onClick={() => setIsOpen(false)}
+                                >
+                                  Save
+                                </button>
+                              </div>
+                            </DialogPanel>
+                          </div>
+                        </Dialog>
                       </div>
                       <div className={`p-5 overflow-y-auto`}>
                         <div className="slide-content w-full">
-                            <div className="overflow-y-auto h-[28rem] mb-2">
-                              <div className="cursor-pointer bg-white shadow-md p-2 border mb-5 mx-2">
-                                <h5 className="text-md font-semibold mb-2">React js</h5>
-                              </div>
-                              <div className="cursor-pointer bg-white shadow-md p-2 border mb-5 mx-2">
-                                 <img src={Image} alt="Image" className="w-full h-72 object-cover"/>
-                              </div>
+                          <div className="overflow-y-auto h-[28rem] mb-2">
+                            <div className="cursor-pointer bg-white shadow-md p-2 border mb-5 mx-2">
+                              <h5 className="text-md font-semibold mb-2">
+                                React js
+                              </h5>
                             </div>
+                            <div className="cursor-pointer bg-white shadow-md p-2 border mb-5 mx-2">
+                              <img
+                                src={Image}
+                                alt="Image"
+                                className="w-full h-72 object-cover"
+                              />
+                            </div>
+                          </div>
                         </div>
                       </div>
                     </Slider>
@@ -310,6 +447,31 @@ export default function AddTopicModal(props: TopicModalProps) {
                         }`}
                         onClick={() => {
                           if (sliderRef.current) {
+                            if (!selectType && currentSlide === 0) {
+                              return;
+                            } else if (!selectTitle && currentSlide === 1) {
+                              return;
+                            } else if (
+                              questions.length === 0 &&
+                              currentSlide === 2
+                            ) {
+                              return;
+                            }
+                            if (props.edit) {
+                              if (currentSlide === 0) {
+                                if (!!editType) {
+                                  // Call API
+                                  sliderRef.current.slickNext();
+                                  return;
+                                }
+                              } else if (currentSlide === 1) {
+                                if (!!editTitle) {
+                                  // Call API
+                                  sliderRef.current.slickNext();
+                                  return;
+                                }
+                              }
+                            }
                             sliderRef.current.slickNext();
                           }
                         }}
