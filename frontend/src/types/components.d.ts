@@ -66,3 +66,8 @@ export interface AuthInstance {
   signIn: () => void;
   signOut: () => void;
 }
+
+export interface GoogleDriveProps {
+  attachments: string[];
+  setAttachments: React.Dispatch<React.SetStateAction<string[]>>;
+}

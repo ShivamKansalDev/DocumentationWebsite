@@ -1,6 +1,6 @@
 import { ChangeEvent, useEffect, useState } from "react";
 import { gapi } from "gapi-script";
-import { AuthInstance } from "../../types/components";
+import { AuthInstance, GoogleDriveProps } from "../../types/components";
 
 const CLIENT_ID =
   "601547264835-64ugahcab1hfnu4bi9mml3igt50najic.apps.googleusercontent.com";
@@ -11,19 +11,18 @@ const DISCOVERY_DOCS = [
 ];
 const SCOPES = "https://www.googleapis.com/auth/drive.file";
 
-const GoogleDriveUpload = () => {
+const GoogleDriveUpload: React.FC<GoogleDriveProps> = (props) => {
+  const { attachments, setAttachments } = props;
   const [isSignedIn, setIsSignedIn] = useState(false);
   const [authInstance, setAuthInstance] = useState<AuthInstance | null>();
-  const [uploadedID, setUploadedID] = useState(null);
-  const [uploadedUrl, setUploadedUrl] = useState("");
+  // const [uploadedID, setUploadedID] = useState(null);
+  // const [uploadedUrl, setUploadedUrl] = useState("");
 
-  useEffect(() => {
-    if (uploadedID) {
-      const newUrl = `https://drive.google.com/thumbnail?id=${uploadedID}&sz=w1000`;
-      setUploadedUrl(newUrl);
-      console.log(uploadedUrl);
-    }
-  }, [uploadedID, setUploadedUrl, uploadedUrl]);
+  // useEffect(() => {
+  //   // const newUrl = ;
+  //   // setUploadedUrl(newUrl);
+  //   console.log(uploadedUrl);
+  // }, [setUploadedUrl, uploadedUrl]);
 
   useEffect(() => {
     const initClient = () => {
@@ -60,38 +59,43 @@ const GoogleDriveUpload = () => {
   };
 
   const handleFileUpload = (event: ChangeEvent<HTMLInputElement>) => {
-    let file;
     if (event.target.files) {
-      file = event.target.files[0];
-    }
-    if (file) {
-      const metadata = {
-        name: file.name,
-        mimeType: file.type,
-        parents: ["17kIU2uibbj5m3LqREPLxkPeOwilOIrlh"], // Optional: specify a folder ID
-      };
+      const allFiles = event.target.files;
+      const links = Array.from(attachments);
+      for (let i = 0; i < allFiles?.length; i++) {
+        const file = allFiles[i];
+        if (file) {
+          const metadata = {
+            name: file.name,
+            mimeType: file.type,
+            parents: ["1mRwpc_MpHlhM_hvGzmqeBf1pDJyun295"], // Optional: specify a folder ID
+          };
 
-      const accessToken = gapi.auth.getToken().access_token;
-      const form = new FormData();
-      form.append(
-        "metadata",
-        new Blob([JSON.stringify(metadata)], { type: "application/json" })
-      );
-      form.append("file", file);
-      fetch(
-        "https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart",
-        {
-          method: "POST",
-          headers: new Headers({ Authorization: `Bearer ${accessToken}` }),
-          body: form,
+          const accessToken = gapi.auth.getToken().access_token;
+          const form = new FormData();
+          form.append(
+            "metadata",
+            new Blob([JSON.stringify(metadata)], { type: "application/json" })
+          );
+          form.append("file", file);
+          fetch(
+            "https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart",
+            {
+              method: "POST",
+              headers: new Headers({ Authorization: `Bearer ${accessToken}` }),
+              body: form,
+            }
+          )
+            .then((response) => response.json())
+            .then((data) => {
+              console.log("File uploaded:", data);
+              links.push(data);
+            })
+            .catch((error) => console.error("Error uploading file:", error));
         }
-      )
-        .then((response) => response.json())
-        .then((data) => {
-          console.log("File uploaded:", data);
-          setUploadedID(data.id);
-        })
-        .catch((error) => console.error("Error uploading file:", error));
+      }
+      setAttachments(links);
+      console.log("attachment links", links);
     }
   };
 
@@ -111,7 +115,7 @@ const GoogleDriveUpload = () => {
               }
             }}
           >
-            Add product image
+            Add file
           </div>
 
           <button
@@ -123,6 +127,7 @@ const GoogleDriveUpload = () => {
           <input
             id="addFile"
             type="file"
+            multiple
             className="hidden"
             onChange={handleFileUpload}
           />

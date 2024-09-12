@@ -120,7 +120,7 @@ export default function AddTopicModal(props: TopicModalProps) {
   const [editTypeModel, setEditTypeModel] = useState(false);
   const [editTitleModel, setEditTitleModel] = useState(false);
 
-  // const [attachments, setAttachments] = useState([]);
+  const [attachments, setAttachments] = useState<string[]>([]);
   const [googleDriveModel, setGoogleDriveModel] = useState(false);
 
   // error
@@ -659,7 +659,10 @@ export default function AddTopicModal(props: TopicModalProps) {
                                           "w-auto h-auto p-10 bg-white border border-gray-300 rounded-lg shadow-md"
                                         }
                                       >
-                                        <GoogleDriveUpload />
+                                        <GoogleDriveUpload
+                                          attachments={attachments}
+                                          setAttachments={setAttachments}
+                                        />
                                       </DialogPanel>
                                     </div>
                                   </Dialog>
