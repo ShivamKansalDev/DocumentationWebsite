@@ -1,4 +1,4 @@
-const mongoose = require("mongoose");
+import mongoose from "mongoose";
 /* Question Structure
 {
 id: original uuid of question object
@@ -13,39 +13,34 @@ attachments: attachments array containing urls of images/videos/pdfs
 */
 
 const QuestionSchema = new mongoose.Schema({
-  id: {
-    type: String,
-    required: true,
-    unique: true,
-  },
   typeId: {
     type: String,
     required: true,
-    unique: true,
   },
   titleId: {
     type: String,
     required: true,
-    unique: true,
   },
   question: {
     type: String,
     required: true,
-    unique: true,
   },
   answer: {
     type: String,
-    unique: true,
     required: true,
   },
   quesLink: {
     type: String,
     required: true,
-    unique: true,
   },
   attachments: {
     type: [String],
   },
 });
 
-module.exports = mongoose.model("Question", QuestionSchema);
+QuestionSchema.index({ question: 1, quesLink: 1 }, { unique: true });
+
+const QuestionModel = mongoose.model("Question", QuestionSchema);
+QuestionModel.syncIndexes();
+
+export default QuestionModel;

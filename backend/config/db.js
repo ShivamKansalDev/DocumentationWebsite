@@ -1,17 +1,19 @@
-const mongoose = require("mongoose")
-const config = require("../config/config");
+import mongoose from "mongoose";
+import config from "../config/config.js";
 
-const URI = config.default.db.mongo_url;
+const URI = config.db.mongo_url;
 
 async function connectDB() {
   try {
     await mongoose.connect(URI);
-    console.log("Pinged your deployment. You successfully connected to MongoDB!");
-  } catch (error){
-    console.log("Error Connecting to mongoDB:", error)  ;
+    console.log(
+      "Pinged your deployment. You successfully connected to MongoDB!"
+    );
+  } catch (error) {
+    console.log("Error Connecting to mongoDB:", error);
   }
 }
 
 connectDB().catch(console.dir);
 
-module.exports = connectDB;
+export default connectDB;

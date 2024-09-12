@@ -1,10 +1,25 @@
-const express = require('express');
+import express from "express";
 const router = express.Router();
 
-const UserController = require('../controllers/userController');
+import {
+  signup,
+  login,
+  getAllUsers,
+  getUserById,
+} from "../controllers/userController.js";
+import {
+  checkAccessToken,
+  checkRefreshToken,
+} from "../controllers/authController.js";
 
-// Define user-related routes
-router.post('/create-user', UserController.createUser);
-router.get('/get-all-users', UserController.getAllUsers);
+// router.post("/refresh-access-token", checkRefreshToken, refreshAccessToken);
 
-module.exports = router;
+router.post("/signup", signup);
+
+router.post("/login", login);
+
+router.get("/get-all-users", checkAccessToken, getAllUsers);
+
+router.get("/:_id", checkAccessToken, getUserById);
+
+export default router;

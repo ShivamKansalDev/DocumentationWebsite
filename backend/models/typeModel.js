@@ -1,4 +1,4 @@
-const mongoose = require("mongoose");
+import mongoose from "mongoose";
 
 /* Type Structure
 {
@@ -10,21 +10,18 @@ typeLink: link portion that will be visible in browser url
 */
 
 const TypeSchema = new mongoose.Schema({
-  id: {
+  typeName: {
     type: String,
-    unique: true,
-    required: true,
-  },
-  type: {
-    type: String,
-    unique: true,
     required: true,
   },
   typeLink: {
     type: String,
-    unique: true,
     required: true,
   },
 });
 
-module.exports = mongoose.model("Type", TypeSchema);
+TypeSchema.index({ typeName: 1, typeLink: 1 }, { unique: true });
+
+const TypeModel = mongoose.model("Type", TypeSchema);
+
+export default TypeModel;
