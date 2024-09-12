@@ -1,10 +1,8 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 "use client";
 
 import "slick-carousel/slick/slick.css";
 import "slick-carousel/slick/slick-theme.css";
-// import "./addTopicModal.css"
-// import Dropzone from 'react-dropzone'
-import Image from "../../../public/images/photo.jpeg";
 
 import SunEditor from "suneditor-react";
 import "suneditor/dist/css/suneditor.min.css";
@@ -19,56 +17,126 @@ import {
   lineHeight,
   list,
   paragraphStyle,
-  table,
   template,
   textStyle,
-  image,
-  video,
   link,
 } from "suneditor/src/plugins";
 
-import { useRef, useState } from "react";
+import { useContext, useEffect, useRef, useState } from "react";
 import Slider from "react-slick";
 import { ChevronLeftIcon, ChevronRightIcon } from "@heroicons/react/16/solid";
 import type { LazyLoadTypes } from "react-slick";
 import { TopicModalProps } from "../../types/components";
 import { Dialog, DialogBackdrop, DialogPanel } from "@headlessui/react";
-import data from "../../data/contents";
+import { SunEditorOptions } from "suneditor/src/options";
+import { apiCall } from "../../API/login";
+import { MainContext } from "../../contexts/mainContextProvider";
+import DisplayContent from "./displayContent";
+import { ArrowUpIcon } from "@heroicons/react/24/outline";
+import GoogleDriveUpload from "../functional/googleDriveUpload";
 
-const testQuestions = [
-  {
-    id: "1",
-    ques: "Go from questioning to understanding.",
-    ans: `First you must start with dechlorinated water.
-    Some aquarium salt. Simple goldfish food.
-    Goldfish like vegataion some freshwater plants
-    couldn't hurt. Goldfish are very simple and easy
-    to keep. Just don't overfeed`,
-    attachment: "",
-  },
-  {
-    id: "2",
-    ques: "Go from questioning to understanding.",
-    ans: `First you must start with dechlorinated water.
-    Some aquarium salt. Simple goldfish food.
-    Goldfish like vegataion some freshwater plants
-    couldn't hurt. Goldfish are very simple and easy
-    to keep. Just don't overfeed`,
-    attachment: "",
-  },
-];
+const sunEditorOptions: SunEditorOptions = {
+  placeholder: "Enter your text here!!!",
+  plugins: [
+    align,
+    font,
+    fontColor,
+    fontSize,
+    formatBlock,
+    hiliteColor,
+    horizontalRule,
+    lineHeight,
+    list,
+    paragraphStyle,
+    template,
+    textStyle,
+    link,
+  ],
+  buttonList: [
+    ["undo", "redo"],
+    [
+      "bold",
+      "underline",
+      "italic",
+      "strike",
+      "subscript",
+      "superscript",
+      "link",
+      "fontColor",
+      "hiliteColor",
+    ],
+  ],
+  formats: ["p", "div", "h1", "h2", "h3", "h4", "h5", "h6"],
+  font: [
+    "Arial",
+    "Calibri",
+    "Comic Sans",
+    "Courier",
+    "Garamond",
+    "Georgia",
+    "Impact",
+    "Lucida Console",
+    "Palatino Linotype",
+    "Segoe UI",
+    "Tahoma",
+    "Times New Roman",
+    "Trebuchet MS",
+  ],
+};
 
 export default function AddTopicModal(props: TopicModalProps) {
   const { open, setOpen } = props;
+  const context = useContext(MainContext);
+
+  if (!context) {
+    throw new Error("Component must be used within a Provider");
+  }
+
+  const { types, titles, questions, setTypes, setTitles, setQuestions } =
+    context;
   const [isOpen, setIsOpen] = useState(false);
-  const [typeAddOpen, setTypeAddOpen] = useState(false);
-  const [selectType, setSelectType] = useState("");
-  const [selectTypeOpen, setSelectTypeOpen] = useState("");
+  const [currentObject, setCurrentObject] = useState({
+    typeId: "",
+    titleId: "",
+    questionId: "",
+  });
+
+  // selected
+  const [selectedType, setSelectedType] = useState("");
+  const [selectedTitle, setSelectedTitle] = useState("");
+  const [selectedQuestion, setSelectedQuestion] = useState("");
+
+  // add states
+  const [addType, setAddType] = useState("");
+  const [addTitle, setAddTitle] = useState("");
+  const [addQuestion, setAddQuestion] = useState({
+    question: "",
+    answer: "",
+    attachments: [],
+  });
+  const [addTypeModel, setAddTypeModel] = useState(false);
+  const [addTitleModel, setAddTitleModel] = useState(false);
+
+  // edit states
   const [editType, setEditType] = useState("");
-  const [editTypeOpen, setEditTypeOpen] = useState(false);
-  const [selectTitle, setSelectTitle] = useState("");
   const [editTitle, setEditTitle] = useState("");
-  const [questions, setQuestions] = useState(testQuestions);
+  const [editTypeModel, setEditTypeModel] = useState(false);
+  const [editTitleModel, setEditTitleModel] = useState(false);
+
+  // const [attachments, setAttachments] = useState([]);
+  const [googleDriveModel, setGoogleDriveModel] = useState(false);
+
+  // error
+  const [error, setError] = useState({
+    typeError: false,
+    titleError: false,
+    questionError: false,
+  });
+  useEffect(() => {
+    if (selectedQuestion) {
+      console.log("");
+    }
+  }, []);
 
   const sliderDetails = [
     { name: "Type", id: "type" },
@@ -76,10 +144,6 @@ export default function AddTopicModal(props: TopicModalProps) {
     { name: "Ques/Ans", id: "description" },
     { name: "Summary", id: "summary" },
   ];
-  // slider settings
-  const sliderRef = useRef<Slider>(null);
-  const [currentSlide, setCurrentSlide] = useState(0);
-
   const settings = {
     // dots: true,
     arrows: false,
@@ -94,12 +158,100 @@ export default function AddTopicModal(props: TopicModalProps) {
       setCurrentSlide(next);
     },
   };
+  // slider settings
+  const sliderRef = useRef<Slider>(null);
+  const [currentSlide, setCurrentSlide] = useState(0);
+
+  const addNewType = async () => {
+    try {
+      if (error.typeError) {
+        return;
+      }
+      const typeLinkGen = addType.toLowerCase().replace(" ", "-");
+      const newType = {
+        typeName: addType,
+        typeLink: typeLinkGen,
+      };
+      // currentObject;
+      const response = await apiCall.post("/types/create-type", newType);
+      setSelectedType(response.data.type.typeName);
+      setTypes(response.data.list);
+      setCurrentObject({
+        ...currentObject,
+        typeId: response.data.type._id,
+      });
+    } catch (error) {
+      console.log("Error adding new type: ", error);
+    }
+  };
+  const addNewTitle = async () => {
+    try {
+      if (error.titleError) {
+        return;
+      }
+      const titleLinkGen = addTitle.toLowerCase().replace(" ", "-");
+      const newTitle = {
+        title: addTitle,
+        titleLink: titleLinkGen,
+        typeId: currentObject.typeId,
+      };
+      // currentObject;
+      const response = await apiCall.post("/titles/create-title", newTitle);
+      setSelectedTitle(response.data.newTitle.title);
+      setTitles(response.data.list);
+      setCurrentObject((prev) => ({
+        ...prev,
+        titleId: response.data.title._id,
+      }));
+    } catch (error) {
+      console.log("Error adding new type: ", error);
+    }
+  };
+  const addNewQuestion = async () => {
+    try {
+      if (error.questionError) {
+        return;
+      }
+      const quesLinkGen = addQuestion.question.toLowerCase().replace(" ", "-");
+      const newQuestion = {
+        typeId: currentObject.typeId,
+        titleId: currentObject.titleId,
+        question: addQuestion.question,
+        answer: JSON.stringify(addQuestion.answer),
+        quesLink: quesLinkGen,
+        attachments: addQuestion.attachments,
+      };
+      // currentObject;
+      const response = await apiCall.post(
+        "/questions/create-question",
+        newQuestion
+      );
+      setSelectedQuestion(response.data.newQuestion.question);
+      setQuestions(response.data.list);
+      setCurrentObject((prev) => ({
+        ...prev,
+        questionId: response.data.newQuestion._id,
+      }));
+    } catch (error) {
+      console.log("Error adding new type: ", error);
+    }
+  };
+
   return (
     <Dialog
       open={open}
       onClose={() => {
         setOpen(!open);
         setCurrentSlide(0);
+        setSelectedType("");
+        setSelectedTitle("");
+        setSelectedQuestion("");
+        setAddType("");
+        setError({
+          typeError: false,
+          titleError: false,
+          questionError: false,
+        });
       }}
       className="relative z-50"
     >
@@ -147,27 +299,40 @@ export default function AddTopicModal(props: TopicModalProps) {
                         <div className="slide-content relative flex items-center justify-center h-[70vh]">
                           <div className="relative text-center">
                             <select
-                              onChange={(e) => setSelectType(e.target.value)}
+                              value={selectedType}
+                              onChange={(e) => {
+                                setSelectedType(e.target.value);
+                                const findType = types.find(
+                                  (item) => item.typeName === e.target.value
+                                );
+                                if (findType) {
+                                  setCurrentObject({
+                                    ...currentObject,
+                                    typeId: findType._id,
+                                  });
+                                }
+                              }}
                               className="outline-none py-2 px-2 mb-3 text-md border-2 border-gray-300 rounded-lg w-72 bg-white text-gray-700"
                             >
                               <option value="" className="text-gray-400 py-2">
                                 Select a type
                               </option>
-                              {data.map((item, index) => (
-                                <option
-                                  key={index}
-                                  value={item.type}
-                                  className="bg-white hover:bg-gray-100 py-2"
-                                >
-                                  {item.type}
-                                </option>
-                              ))}
+                              {types &&
+                                types.map((type, index) => (
+                                  <option
+                                    key={index}
+                                    value={type.typeName}
+                                    className="bg-white hover:bg-gray-100 py-2"
+                                  >
+                                    {type.typeName}
+                                  </option>
+                                ))}
                             </select>
                             {props.add && !props.edit && (
                               <div className="absolute right-0 mt-2 cursor-pointer bg-black text-white flex items-center justify-center py-2 px-2 rounded-full">
                                 <span
                                   className="material-symbols-outlined"
-                                  onClick={() => setTypeAddOpen(!typeAddOpen)}
+                                  onClick={() => setAddTypeModel(!addTypeModel)}
                                 >
                                   add
                                 </span>
@@ -176,10 +341,10 @@ export default function AddTopicModal(props: TopicModalProps) {
                             {!props.add && props.edit && (
                               <>
                                 <div className="absolute right-0 mt-2 cursor-pointer bg-black text-white flex items-center justify-center py-1 px-2 rounded-md">
-                                  {   editType ? (
+                                  {editType ? (
                                     <button
                                       onClick={() =>
-                                        setEditTypeOpen(editTypeOpen)
+                                        setEditTypeModel(editTypeModel)
                                       }
                                     >
                                       Save
@@ -187,14 +352,14 @@ export default function AddTopicModal(props: TopicModalProps) {
                                   ) : (
                                     <button
                                       onClick={() =>
-                                        setEditTypeOpen(!editTypeOpen)
+                                        setEditTypeModel(!editTypeModel)
                                       }
                                     >
                                       Edit
                                     </button>
                                   )}
                                 </div>
-                                {editTypeOpen && (
+                                {editTypeModel && (
                                   <input
                                     className="w-72 outline-none py-2 px-2 text-md border-2 border-gray-300 rounded-lg bg-white text-gray-700"
                                     placeholder="Enter a type..."
@@ -206,40 +371,60 @@ export default function AddTopicModal(props: TopicModalProps) {
                               </>
                             )}
                             <Dialog
-                              open={typeAddOpen}
-                              onClose={() => setTypeAddOpen(typeAddOpen)}
+                              open={addTypeModel}
+                              onClose={() => setAddTypeModel(addTypeModel)}
                               className="relative z-50"
                             >
                               <div className="fixed inset-0 flex items-center justify-center mx-auto  p-4">
-                                <DialogPanel className="rounded-md border bg-white p-6 flex-col w-80 h-40">
+                                <DialogPanel className="rounded-md border bg-white p-6 flex-col w-80 h-auto">
                                   <p className="mb-2">Choose a type</p>
-                                  <div>
-                                    <input
-                                      value={selectTypeOpen}
-                                      className="w-full outline-none py-2 px-2 mb-3 text-md border-2 border-gray-300 rounded-lg bg-white text-gray-700"
-                                      placeholder="Enter a type..."
-                                      onChange={(e) =>
-                                        setSelectTypeOpen(e.target.value)
-                                      }
-                                    />
-                                    <div className="flex gap-2 justify-end">
-                                      <button
-                                        className="border bg-black text-white py-1 px-3 rounded-md"
-                                        onClick={() =>
-                                          setTypeAddOpen(!typeAddOpen)
-                                        }
-                                      >
-                                        Cancel
-                                      </button>
-                                      <button
-                                        className="border bg-black text-white py-1 px-3 rounded-md"
-                                        onClick={() =>
-                                          setTypeAddOpen(!typeAddOpen)
-                                        }
-                                      >
-                                        Save
-                                      </button>
+                                  <input
+                                    value={addType}
+                                    className="w-full outline-none py-2 px-2 mb-3 text-md border-2 border-gray-300 rounded-lg bg-white text-gray-700"
+                                    placeholder="Enter a type..."
+                                    onChange={(e) => setAddType(e.target.value)}
+                                  />
+                                  {error.typeError && (
+                                    <div className="text-red-500 text-sm">
+                                      {" "}
+                                      Type already exists
                                     </div>
+                                  )}
+                                  <div className="flex gap-2 justify-end">
+                                    <button
+                                      className="border bg-black text-white py-1 px-3 rounded-md"
+                                      onClick={() => {
+                                        setAddType("");
+                                        setSelectedType("");
+                                        setAddTypeModel(!addTypeModel);
+                                      }}
+                                    >
+                                      Cancel
+                                    </button>
+                                    <button
+                                      className="border bg-black text-white py-1 px-3 rounded-md"
+                                      onClick={() => {
+                                        if (addType) {
+                                          if (
+                                            types?.find(
+                                              (item) =>
+                                                item.typeName.toLowerCase() ===
+                                                addType.toLowerCase()
+                                            )
+                                          ) {
+                                            setError((prev) => ({
+                                              ...prev,
+                                              typeError: true,
+                                            }));
+                                          } else {
+                                            addNewType();
+                                            setAddTypeModel(!addTypeModel);
+                                          }
+                                        }
+                                      }}
+                                    >
+                                      Save
+                                    </button>
                                   </div>
                                 </DialogPanel>
                               </div>
@@ -251,32 +436,178 @@ export default function AddTopicModal(props: TopicModalProps) {
                         <p>Please Choose a Title</p>
                         <div className="slide-content relative flex items-center justify-center h-[70vh]">
                           <div className="text-center">
-                            <input
-                              className="outline-none py-2 px-2 text-md border-2 border-gray-300 rounded-lg w-72 bg-white text-gray-700"
-                              placeholder="choose a title..."
-                              onChange={(e) => setSelectTitle(e.target.value)}
-                            />
+                            <select
+                              value={selectedTitle}
+                              onChange={(e) => {
+                                setSelectedTitle(e.target.value);
+                                const findTitle = titles.find(
+                                  (item) => item.title === e.target.value
+                                );
+                                if (findTitle) {
+                                  setCurrentObject({
+                                    ...currentObject,
+                                    titleId: findTitle._id,
+                                  });
+                                }
+                              }}
+                              className="outline-none py-2 px-2 mb-3 text-md border-2 border-gray-300 rounded-lg w-72 bg-white text-gray-700"
+                            >
+                              <option value="" className="text-gray-400 py-2">
+                                Select a title
+                              </option>
+                              {titles &&
+                                titles
+                                  .filter((title) => {
+                                    return (
+                                      title.typeId === currentObject.typeId
+                                    );
+                                  })
+                                  .map((title, index) => (
+                                    <option
+                                      key={index}
+                                      value={title.title}
+                                      className="bg-white hover:bg-gray-100 py-2"
+                                    >
+                                      {title.title}
+                                    </option>
+                                  ))}
+                            </select>
+                            {props.add && !props.edit && (
+                              <div className="absolute right-0 mt-2 cursor-pointer bg-black text-white flex items-center justify-center py-2 px-2 rounded-full">
+                                <span
+                                  className="material-symbols-outlined"
+                                  onClick={() =>
+                                    setAddTitleModel(!addTitleModel)
+                                  }
+                                >
+                                  add
+                                </span>
+                              </div>
+                            )}
+                            {!props.add && props.edit && (
+                              <>
+                                <div className="absolute right-0 mt-2 cursor-pointer bg-black text-white flex items-center justify-center py-1 px-2 rounded-md">
+                                  {editType ? (
+                                    <button
+                                      onClick={() =>
+                                        setEditTitleModel(editTitleModel)
+                                      }
+                                    >
+                                      Save
+                                    </button>
+                                  ) : (
+                                    <button
+                                      onClick={() =>
+                                        setEditTitleModel(!editTitleModel)
+                                      }
+                                    >
+                                      Edit
+                                    </button>
+                                  )}
+                                </div>
+                                {editTitleModel && (
+                                  <input
+                                    className="w-72 outline-none py-2 px-2 text-md border-2 border-gray-300 rounded-lg bg-white text-gray-700"
+                                    placeholder="Enter a type..."
+                                    onChange={(e) =>
+                                      setEditTitle(e.target.value)
+                                    }
+                                  />
+                                )}
+                              </>
+                            )}
                           </div>
+                          <Dialog
+                            open={addTitleModel}
+                            onClose={() => setAddTitleModel(addTitleModel)}
+                            className="relative z-50"
+                          >
+                            <div className="fixed inset-0 flex items-center justify-center mx-auto  p-4">
+                              <DialogPanel className="rounded-md border bg-white p-6 flex-col w-80 h-auto">
+                                <p className="mb-2">Choose a title</p>
+                                <input
+                                  value={addTitle}
+                                  className="w-full outline-none py-2 px-2 mb-3 text-md border-2 border-gray-300 rounded-lg bg-white text-gray-700"
+                                  placeholder="Enter a title..."
+                                  onChange={(e) => setAddTitle(e.target.value)}
+                                />
+                                {error.titleError && (
+                                  <div className="text-red-500 text-sm">
+                                    {" "}
+                                    Title already exists
+                                  </div>
+                                )}
+                                <div className="flex gap-2 justify-end">
+                                  <button
+                                    className="border bg-black text-white py-1 px-3 rounded-md"
+                                    onClick={() => {
+                                      setAddTitle("");
+                                      setSelectedTitle("");
+                                      setAddTitleModel(!addTitleModel);
+                                    }}
+                                  >
+                                    Cancel
+                                  </button>
+                                  <button
+                                    className="border bg-black text-white py-1 px-3 rounded-md"
+                                    onClick={() => {
+                                      if (addTitle) {
+                                        if (
+                                          titles?.find(
+                                            (item) =>
+                                              item.title.toLowerCase() ===
+                                              addTitle.toLowerCase()
+                                          )
+                                        ) {
+                                          setError((prev) => ({
+                                            ...prev,
+                                            titleError: true,
+                                          }));
+                                        } else {
+                                          addNewTitle();
+                                          setAddTitleModel(!addTitleModel);
+                                        }
+                                      }
+                                    }}
+                                  >
+                                    Save
+                                  </button>
+                                </div>
+                              </DialogPanel>
+                            </div>
+                          </Dialog>
                         </div>
                       </div>
                       <div className={`p-5 overflow-y-auto`}>
                         <div className="slide-content">
                           <div className="overflow-y-auto h-[26rem] mb-2">
-                            {questions.map((item) => {
-                              return (
-                                <div
-                                  key={`ques${item.id}`}
-                                  className="cursor-pointer bg-white shadow-md p-2 border mb-5 mx-2"
-                                >
-                                  <h5 className="text-md font-semibold mb-2">
-                                    {item.ques}
-                                  </h5>
-                                  <p className="text-sm font-extralight">
-                                    {item.ans}
-                                  </p>
-                                </div>
-                              );
-                            })}
+                            <div className="text-lg pb-4">Questions</div>
+                            {questions &&
+                              questions
+                                .filter(
+                                  (question) =>
+                                    question.typeId === currentObject.typeId &&
+                                    question.titleId === currentObject.titleId
+                                )
+                                .map((question) => {
+                                  return (
+                                    <div
+                                      key={`ques${question._id}`}
+                                      className={`${
+                                        props.edit ? "cursor-pointer" : ""
+                                      } bg-white shadow-md p-2 border mb-3`}
+                                    >
+                                      <h5 className="text-md font-semibold mb-2">
+                                        {question.question}
+                                      </h5>
+                                      <p className="text-sm font-extralight">
+                                        <DisplayContent
+                                          content={JSON.parse(question.answer)}
+                                        />
+                                      </p>
+                                    </div>
+                                  );
+                                })}
                           </div>
                         </div>
                         <div className="flex justify-end">
@@ -297,101 +628,77 @@ export default function AddTopicModal(props: TopicModalProps) {
                               <h2 className="font-medium text-[20px] mb-5">
                                 Question and answer
                               </h2>
-                              <div>
-                                <input
-                                  className="border outline-none mb-3 w-full p-2 rounded-sm"
-                                  placeholder="Question"
-                                />
+                              <div className="">
+                                <div className="flex gap-2 mb-3">
+                                  <input
+                                    value={addQuestion.question}
+                                    className="border outline-none  w-full p-2 rounded-sm"
+                                    placeholder="Question"
+                                    onChange={(e) => {
+                                      setAddQuestion((prev) => ({
+                                        ...prev,
+                                        question: e.target.value,
+                                      }));
+                                    }}
+                                  />
+                                  <div
+                                    onClick={() =>
+                                      setGoogleDriveModel(!googleDriveModel)
+                                    }
+                                    className="border outline-none cursor-pointer px-2 flex items-center justify-center rounded-sm"
+                                  >
+                                    <ArrowUpIcon className="h-5 w-5" />
+                                  </div>
+                                  <Dialog
+                                    className={"relative w-full h-full z-50"}
+                                    open={googleDriveModel}
+                                    onClose={() =>
+                                      setGoogleDriveModel(!googleDriveModel)
+                                    }
+                                  >
+                                    <div className="bg-gray-500 bg-opacity-15 fixed inset-0 p-16 flex items-center justify-center mx-auto">
+                                      <DialogPanel
+                                        className={
+                                          "w-auto h-auto p-10 bg-white border border-gray-300 rounded-lg shadow-md"
+                                        }
+                                      >
+                                        <GoogleDriveUpload />
+                                      </DialogPanel>
+                                    </div>
+                                  </Dialog>
+                                </div>
                                 <div className="mb-4">
                                   <SunEditor
                                     height="40vh"
-                                    setOptions={{
-                                      placeholder: "Enter your text here!!!",
-                                      plugins: [
-                                        align,
-                                        font,
-                                        fontColor,
-                                        fontSize,
-                                        formatBlock,
-                                        hiliteColor,
-                                        horizontalRule,
-                                        lineHeight,
-                                        list,
-                                        paragraphStyle,
-                                        table,
-                                        template,
-                                        textStyle,
-                                        image,
-                                        video,
-                                        link,
-                                      ],
-                                      buttonList: [
-                                        ["undo", "redo"],
-                                        [
-                                          "bold",
-                                          "underline",
-                                          "italic",
-                                          "strike",
-                                          "subscript",
-                                          "superscript",
-                                          "table",
-                                          "link",
-                                          "image",
-                                          "video",
-                                          "fontColor",
-                                          "hiliteColor",
-                                        ],
-                                      ],
-                                      formats: [
-                                        "p",
-                                        "div",
-                                        "h1",
-                                        "h2",
-                                        "h3",
-                                        "h4",
-                                        "h5",
-                                        "h6",
-                                      ],
-                                      font: [
-                                        "Arial",
-                                        "Calibri",
-                                        "Comic Sans",
-                                        "Courier",
-                                        "Garamond",
-                                        "Georgia",
-                                        "Impact",
-                                        "Lucida Console",
-                                        "Palatino Linotype",
-                                        "Segoe UI",
-                                        "Tahoma",
-                                        "Times New Roman",
-                                        "Trebuchet MS",
-                                      ],
+                                    setOptions={sunEditorOptions}
+                                    onChange={(content) => {
+                                      setAddQuestion((prev) => ({
+                                        ...prev,
+                                        answer: content,
+                                      }));
                                     }}
                                   />
                                 </div>
-                                {/* <Dropzone>
-                                  {({getRootProps, getInputProps}) => (
-                                    <div {...getRootProps()} className="border w-full p-2 mb-3 cursor-pointer">
-                                      <input {...getInputProps()} />
-                                      <svg xmlns="http://www.w3.org/2000/svg" width="24px" height="24px" viewBox="0 0 24 24" fill="none">
-                                          <path d="M13 3L13.7071 2.29289C13.5196 2.10536 13.2652 2 13 2V3ZM19 9H20C20 8.73478 19.8946 8.48043 19.7071 8.29289L19 9ZM13.109 8.45399L14 8V8L13.109 8.45399ZM13.546 8.89101L14 8L13.546 8.89101ZM10 13C10 12.4477 9.55228 12 9 12C8.44772 12 8 12.4477 8 13H10ZM8 16C8 16.5523 8.44772 17 9 17C9.55228 17 10 16.5523 10 16H8ZM8.5 9C7.94772 9 7.5 9.44772 7.5 10C7.5 10.5523 7.94772 11 8.5 11V9ZM9.5 11C10.0523 11 10.5 10.5523 10.5 10C10.5 9.44772 10.0523 9 9.5 9V11ZM8.5 6C7.94772 6 7.5 6.44772 7.5 7C7.5 7.55228 7.94772 8 8.5 8V6ZM9.5 8C10.0523 8 10.5 7.55228 10.5 7C10.5 6.44772 10.0523 6 9.5 6V8ZM17.908 20.782L17.454 19.891L17.454 19.891L17.908 20.782ZM18.782 19.908L19.673 20.362L18.782 19.908ZM5.21799 19.908L4.32698 20.362H4.32698L5.21799 19.908ZM6.09202 20.782L6.54601 19.891L6.54601 19.891L6.09202 20.782ZM6.09202 3.21799L5.63803 2.32698L5.63803 2.32698L6.09202 3.21799ZM5.21799 4.09202L4.32698 3.63803L4.32698 3.63803L5.21799 4.09202ZM12 3V7.4H14V3H12ZM14.6 10H19V8H14.6V10ZM12 7.4C12 7.66353 11.9992 7.92131 12.0169 8.13823C12.0356 8.36682 12.0797 8.63656 12.218 8.90798L14 8C14.0293 8.05751 14.0189 8.08028 14.0103 7.97537C14.0008 7.85878 14 7.69653 14 7.4H12ZM14.6 8C14.3035 8 14.1412 7.99922 14.0246 7.9897C13.9197 7.98113 13.9425 7.9707 14 8L13.092 9.78201C13.3634 9.92031 13.6332 9.96438 13.8618 9.98305C14.0787 10.0008 14.3365 10 14.6 10V8ZM12.218 8.90798C12.4097 9.2843 12.7157 9.59027 13.092 9.78201L14 8V8L12.218 8.90798ZM8 13V16H10V13H8ZM8.5 11H9.5V9H8.5V11ZM8.5 8H9.5V6H8.5V8ZM13 2H8.2V4H13V2ZM4 6.2V17.8H6V6.2H4ZM8.2 22H15.8V20H8.2V22ZM20 17.8V9H18V17.8H20ZM19.7071 8.29289L13.7071 2.29289L12.2929 3.70711L18.2929 9.70711L19.7071 8.29289ZM15.8 22C16.3436 22 16.8114 22.0008 17.195 21.9694C17.5904 21.9371 17.9836 21.8658 18.362 21.673L17.454 19.891C17.4045 19.9162 17.3038 19.9539 17.0322 19.9761C16.7488 19.9992 16.3766 20 15.8 20V22ZM18 17.8C18 18.3766 17.9992 18.7488 17.9761 19.0322C17.9539 19.3038 17.9162 19.4045 17.891 19.454L19.673 20.362C19.8658 19.9836 19.9371 19.5904 19.9694 19.195C20.0008 18.8114 20 18.3436 20 17.8H18ZM18.362 21.673C18.9265 21.3854 19.3854 20.9265 19.673 20.362L17.891 19.454C17.7951 19.6422 17.6422 19.7951 17.454 19.891L18.362 21.673ZM4 17.8C4 18.3436 3.99922 18.8114 4.03057 19.195C4.06287 19.5904 4.13419 19.9836 4.32698 20.362L6.10899 19.454C6.0838 19.4045 6.04612 19.3038 6.02393 19.0322C6.00078 18.7488 6 18.3766 6 17.8H4ZM8.2 20C7.62345 20 7.25117 19.9992 6.96784 19.9761C6.69617 19.9539 6.59545 19.9162 6.54601 19.891L5.63803 21.673C6.01641 21.8658 6.40963 21.9371 6.80497 21.9694C7.18864 22.0008 7.65645 22 8.2 22V20ZM4.32698 20.362C4.6146 20.9265 5.07354 21.3854 5.63803 21.673L6.54601 19.891C6.35785 19.7951 6.20487 19.6422 6.10899 19.454L4.32698 20.362ZM8.2 2C7.65645 2 7.18864 1.99922 6.80497 2.03057C6.40963 2.06287 6.01641 2.13419 5.63803 2.32698L6.54601 4.10899C6.59545 4.0838 6.69617 4.04612 6.96784 4.02393C7.25117 4.00078 7.62345 4 8.2 4V2ZM6 6.2C6 5.62345 6.00078 5.25117 6.02393 4.96784C6.04612 4.69617 6.0838 4.59545 6.10899 4.54601L4.32698 3.63803C4.13419 4.01641 4.06287 4.40963 4.03057 4.80497C3.99922 5.18864 4 5.65645 4 6.2H6ZM5.63803 2.32698C5.07354 2.6146 4.6146 3.07354 4.32698 3.63803L6.10899 4.54601C6.20487 4.35785 6.35785 4.20487 6.54601 4.10899L5.63803 2.32698Z" fill="#000000"/>
-                                      </svg>
-                                      <span>Drag 'n' drop some files here, or click to select files</span>
-                                    </div>
-                                  )}
-                                </Dropzone> */}
                               </div>
                               <div className="flex justify-end gap-4">
                                 <button
                                   className="border bg-black text-white py-1 px-3 rounded-md"
-                                  onClick={() => setIsOpen(false)}
+                                  onClick={() => {
+                                    setAddQuestion((prev) => ({
+                                      ...prev,
+                                      answer: "",
+                                    }));
+                                    setIsOpen(false);
+                                  }}
                                 >
                                   Cancel
                                 </button>
                                 <button
                                   className="border bg-black text-white py-1 px-3 rounded-md"
-                                  onClick={() => setIsOpen(false)}
+                                  onClick={() => {
+                                    addNewQuestion();
+                                    setIsOpen(false);
+                                  }}
                                 >
                                   Save
                                 </button>
@@ -403,25 +710,46 @@ export default function AddTopicModal(props: TopicModalProps) {
                       <div className={`p-5 overflow-y-auto`}>
                         <div className="slide-content w-full">
                           <div className="overflow-y-auto h-[28rem] mb-2">
-                            <div className="cursor-pointer bg-white shadow-md p-2 border mb-5 mx-2">
-                              <h5 className="text-md font-semibold mb-2">
-                                React js
-                              </h5>
-                            </div>
-                            <div className="cursor-pointer bg-white shadow-md p-2 border mb-5 mx-2">
-                              <img
-                                src={Image}
-                                alt="Image"
-                                className="w-full h-72 object-cover"
-                              />
-                            </div>
+                            <h5 className="text-md font-semibold mb-5">
+                              {selectedType}
+                            </h5>
+                            <h5 className="text-md font-semibold mb-5">
+                              {selectedTitle}
+                            </h5>
+
+                            {questions &&
+                              questions
+                                .filter(
+                                  (question) =>
+                                    question.typeId === currentObject.typeId &&
+                                    question.titleId === currentObject.titleId
+                                )
+                                .map((question) => {
+                                  return (
+                                    <div
+                                      key={`ques${question._id}`}
+                                      className={`${
+                                        props.edit ? "cursor-pointer" : ""
+                                      } bg-white shadow-md p-2 border mb-3`}
+                                    >
+                                      <h5 className="text-md font-semibold mb-2">
+                                        {question.question}
+                                      </h5>
+                                      <p className="text-sm font-extralight">
+                                        <DisplayContent
+                                          content={JSON.parse(question.answer)}
+                                        />
+                                      </p>
+                                    </div>
+                                  );
+                                })}
                           </div>
                         </div>
                       </div>
                     </Slider>
                   </div>
                   {/* </div> */}
-                  <div className="-my-1 w-full flex items-center justify-between">
+                  <div className="-mt-1 w-full flex items-center justify-between">
                     <span>
                       <button
                         className={`${currentSlide === 0 ? "hidden" : ""}`}
@@ -434,7 +762,7 @@ export default function AddTopicModal(props: TopicModalProps) {
                         <ChevronLeftIcon
                           height={30}
                           width={30}
-                          className="text-gray-600 bg-gray-200 m-3 rounded-full"
+                          className="text-gray-600 bg-gray-200 m-1 mx-3 rounded-full"
                         />
                       </button>
                     </span>
@@ -447,25 +775,30 @@ export default function AddTopicModal(props: TopicModalProps) {
                         }`}
                         onClick={() => {
                           if (sliderRef.current) {
-                            if (!selectType && currentSlide === 0) {
+                            let ques;
+                            if (selectedType && selectedTitle) {
+                              ques = questions.filter(
+                                (question) =>
+                                  question.titleId === currentObject.titleId &&
+                                  question.typeId === currentObject.typeId
+                              );
+                            }
+                            if (!selectedType && currentSlide === 0) {
                               return;
-                            } else if (!selectTitle && currentSlide === 1) {
+                            } else if (!selectedTitle && currentSlide === 1) {
                               return;
-                            } else if (
-                              questions.length === 0 &&
-                              currentSlide === 2
-                            ) {
+                            } else if (!ques && currentSlide === 2) {
                               return;
                             }
                             if (props.edit) {
                               if (currentSlide === 0) {
-                                if (!!editType) {
+                                if (!editType) {
                                   // Call API
                                   sliderRef.current.slickNext();
                                   return;
                                 }
                               } else if (currentSlide === 1) {
-                                if (!!editTitle) {
+                                if (!editTitle) {
                                   // Call API
                                   sliderRef.current.slickNext();
                                   return;
@@ -479,7 +812,7 @@ export default function AddTopicModal(props: TopicModalProps) {
                         <ChevronRightIcon
                           height={30}
                           width={30}
-                          className="text-gray-600 bg-gray-200 m-3 rounded-full"
+                          className="text-gray-600 bg-gray-200 m-1 mx-3 rounded-full"
                         />
                       </button>
                     </span>
