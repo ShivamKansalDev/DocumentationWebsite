@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
 "use client";
 
 import "slick-carousel/slick/slick.css";
@@ -136,7 +135,7 @@ export default function AddTopicModal(props: TopicModalProps) {
     if (selectedQuestion) {
       console.log("");
     }
-  }, []);
+  }, [selectedQuestion]);
 
   const sliderDetails = [
     { name: "Type", id: "type" },
