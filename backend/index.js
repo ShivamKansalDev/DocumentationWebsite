@@ -1,26 +1,38 @@
 // server.js
-const express = require("express");
-const connectDB = require("./config/db");
-const cors = require("cors");
-const bodyParser = require("body-parser");
+import express from "express";
+import connectDB from "./config/db.js";
+import cors from "cors";
+import bodyParser from "body-parser";
+import cookieParser from "cookie-parser";
+
+import config from "./config/config.js";
+
+// importing routes
+import userRoutes from "./routes/userRoutes.js";
+import typeRoutes from "./routes/typeRoutes.js";
+import titleRoutes from "./routes/titleRoutes.js";
+import questionRoutes from "./routes/questionRoutes.js";
 
 const app = express();
 
 // dotenv config
-const PORT = require("./config/config").default.port || 3001;
+const PORT = config.port || 3001;
 
 // database connection
 connectDB();
 
 // setting up middlewares
 app.use(cors());
+app.use(cookieParser());
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 
 // setting routes
 // app.use("/api/auth", require("./routes/authRoutes"));
-app.use("/api/types", require("./routes/typeRoutes"));
-app.use("/api/users", require("./routes/userRoutes"));
+app.use("/api/users", userRoutes);
+app.use("/api/types", typeRoutes);
+app.use("/api/titles", titleRoutes);
+app.use("/api/questions", questionRoutes);
 
 // Start the server
 app.listen(PORT, () => {

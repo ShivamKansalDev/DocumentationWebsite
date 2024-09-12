@@ -1,4 +1,4 @@
-const mongoose = require("mongoose");
+import mongoose from "mongoose";
 
 /* Title Structure
 {
@@ -11,16 +11,6 @@ titleLink: link portion that will be visible in browser url
 */
 
 const TitleSchema = new mongoose.Schema({
-  id: {
-    type: String,
-    required: true,
-    unique: true,
-  },
-  typeId: {
-    type: String,
-    required: true,
-    unique: true,
-  },
   title: {
     type: String,
     required: true,
@@ -31,6 +21,17 @@ const TitleSchema = new mongoose.Schema({
     required: true,
     unique: true,
   },
+  typeId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "Type",
+    required: true,
+  },
 });
 
-module.exports = mongoose.model("Title", TitleSchema);
+TitleSchema.index({ title: 1, titleLink: 1 }, { unique: true });
+
+const TitleModel = mongoose.model("Title", TitleSchema);
+
+TitleModel.syncIndexes();
+
+export default TitleModel;

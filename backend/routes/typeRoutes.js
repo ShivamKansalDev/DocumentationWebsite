@@ -1,46 +1,30 @@
-const express = require("express");
+import express from "express";
 const router = express.Router();
 
-const TypeController = require("../controllers/typeController");
-const TitleController = require("../controllers/titleController");
-const QuestionController = require("../controllers/questionController");
-
-// ***** admin only *****
-// ***** user routes *****
+import {
+  getAllTypes,
+  createType,
+  getTypeById,
+  updateType,
+  deleteType,
+} from "../controllers/typeController.js";
+import { checkAccessToken } from "../controllers/authController.js";
 
 // <-------------------- types -------------------->
 
 // GET REQUESTS
-router.get("/get-all-types", TypeController.getAllTypes);
+// router.get("/", checkAccessToken, getAllTypes);
+router.get("/", getAllTypes);
+
+router.get("/:_id", getTypeById);
 
 // POST REQUESTS
-router.post("/create-type", TypeController.createType);
+router.post("/create-type", createType);
 
-// PATCH REQUESTS
-
-// DELETE REQUESTS
-
-// <-------------------- titles ------------------->
-
-// GET REQUESTS
-router.get("/:link/all-titles", TitleController.getAllTitlesByType);
-
-// POST REQUESTS
-router.post("/:link/create-title", TitleController.createTitle);
-
-// PATCH REQUESTS
+// PUT REQUESTS
+router.put("/update-type/:_id", checkAccessToken, updateType);
 
 // DELETE REQUESTS
+router.delete("/delete-type/:_id", checkAccessToken, deleteType);
 
-// <-------------------- questions -------------------->
-
-// GET REQUESTS
-router.get("/:type/:titles", QuestionController.getAllQuestionsByTitle);
-
-// POST REQUESTS
-
-// PATCH REQUESTS
-
-// DELETE REQUESTS
-
-module.exports = router;
+export default router;
