@@ -1,28 +1,28 @@
 // server.js
 const express = require("express");
-const connectDB = require('./config/db');
-const cors = require('cors');
-const bodyParser = require('body-parser');
+const connectDB = require("./config/db");
+const cors = require("cors");
+const bodyParser = require("body-parser");
 
 const app = express();
 
-// dotenv config 
+// dotenv config
 const PORT = require("./config/config").default.port || 3001;
 
-// database connection 
+// database connection
 connectDB();
 
-// setting up middlewares 
+// setting up middlewares
 app.use(cors());
 app.use(bodyParser.json());
-app.use(bodyParser.urlencoded({extended: true}));
+app.use(bodyParser.urlencoded({ extended: true }));
 
-// setting routes 
+// setting routes
 // app.use("/api/auth", require("./routes/authRoutes"));
-app.use("/api/topics", require("./routes/topicRoutes"));
+app.use("/api/types", require("./routes/typeRoutes"));
 app.use("/api/users", require("./routes/userRoutes"));
 
 // Start the server
 app.listen(PORT, () => {
-    console.log(`Server is running on:- http://127.0.0.1:${PORT}/`);
+  console.log(`Server is running on:- http://127.0.0.1:${PORT}/`);
 });

@@ -6,10 +6,9 @@ body {
   margin: 0;
   padding: 0;
   box-sizing: border-box;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
-    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Oxygen",
+    "Ubuntu", "Cantarell", "Fira Sans", "Droid Sans", "Helvetica Neue",
     sans-serif;
-
 }
 
 /* Customize the scrollbar track */
@@ -22,7 +21,7 @@ body {
 
 /* Customize the scrollbar handle */
 ::-webkit-scrollbar-thumb {
-  background-color: theme('colors.light-primary');
+  background-color: theme("colors.light-primary");
   /* Color of the scrollbar handle */
   border-radius: 6px;
   /* Rounded corners for the scrollbar handle */
@@ -47,46 +46,46 @@ body {
   background-color: #e0e0e0;
   /* Color of the scrollbar track when hovered */
 }
-.sidebar-model{
-  background-image:url('../../frontend/public/images/photo.jpeg');
+.sidebar-model {
+  background-image: url("/images/photo.jpeg");
   background-repeat: no-repeat;
   position: relative;
 }
-.sidebar-model ul{
+.sidebar-model ul {
   position: absolute;
   top: 0;
   bottom: 0;
   left: 0;
   right: 0;
-  backdrop-filter:blur(20px);
+  backdrop-filter: blur(20px);
   color: #fff;
   font-weight: 400;
   font-size: 16px;
 }
-.sidebar-right{
+.sidebar-right {
   position: relative;
 }
 .sidebar-right::before {
-  content: '';
+  content: "";
   position: absolute;
   top: 2rem;
   left: -0.5rem;
   width: 100%;
   height: 100%;
-  background-image: url('../../frontend/public/images/business.png');
+  background-image: url("/images/business.png");
   background-repeat: no-repeat;
   opacity: 0.1;
   pointer-events: none;
 }
-.login-section{
-  background-image: url('../../frontend//public/images/nebula_glow.jpg');
+.login-section {
+  background-image: url("/images/nebula_glow.jpg");
   background-repeat: no-repeat;
   height: 100vh;
   background-size: cover;
   position: relative;
 }
-.login-section::after{
-  content: '';
+.login-section::after {
+  content: "";
   position: absolute;
   top: 0;
   left: 0;
@@ -95,14 +94,14 @@ body {
   background-color: hsl(0deg 0% 0% / 20%);
   pointer-events: none;
 }
-.login-card{
+.login-card {
   position: absolute;
   top: 0;
   bottom: 0;
   left: 0;
   right: 0;
   color: #fff;
-  backdrop-filter:blur(5px);
+  backdrop-filter: blur(5px);
   width: 100%;
   height: 100%;
 }
@@ -111,5 +110,3 @@ body {
   border-radius: 12px;
   border: 1px solid rgba(209, 213, 219, 0.3);
 }
-
-

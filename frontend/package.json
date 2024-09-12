@@ -12,12 +12,16 @@
   "dependencies": {
     "@headlessui/react": "^2.1.2",
     "@heroicons/react": "^2.1.5",
+    "axios": "^1.7.7",
     "font-awesome": "^4.7.0",
+    "gapi-script": "^1.2.0",
+    "html-react-parser": "^5.1.15",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "react-dropzone": "^14.2.3",
     "react-router-dom": "^6.26.0",
     "react-slick": "^0.30.2",
+    "react-spinners": "^0.14.1",
     "slick-carousel": "^1.8.1",
     "suneditor-react": "^3.6.1",
     "web-vitals": "^4.2.3"

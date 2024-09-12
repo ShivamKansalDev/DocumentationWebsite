@@ -1,8 +1,11 @@
+import { MainContextProvider } from "./contexts/mainContextProvider";
 import ReactRouter from "./Router";
 
 function App() {
   return (
-    <ReactRouter />
+    <MainContextProvider>
+      <ReactRouter />
+    </MainContextProvider>
   );
 }
 
