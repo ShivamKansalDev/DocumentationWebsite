@@ -68,6 +68,29 @@ export interface AuthInstance {
 }
 
 export interface GoogleDriveProps {
+  addQuestion: QuestionObject;
+  setAddQuestion: React.Dispatch<React.SetStateAction<QuestionObject>>;
+  inputFiles: FileList;
+  // setInputFiles: React.Dispatch<React.SetStateAction<FileList>>;
+  areFilesUploaded: boolean;
+  setAreFilesUploaded: React.Dispatch<React.SetStateAction<boolean>>;
+  addNewQuestion: () => Promise<void>;
+}
+
+export interface QuestionObject {
+  question: string;
+  answer: string;
   attachments: string[];
-  setAttachments: React.Dispatch<React.SetStateAction<string[]>>;
+}
+
+export interface CurrentObject {
+  typeId: string;
+  titleId: string;
+  questionId: string;
+}
+
+export interface ErrorObject {
+  typeError: boolean;
+  titleError: boolean;
+  questionError: boolean;
 }

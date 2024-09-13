@@ -1,5 +1,9 @@
 import React, { forwardRef, useContext, useState } from "react";
-import { ChevronDownIcon } from "@heroicons/react/24/outline";
+import {
+  ChevronDoubleLeftIcon,
+  ChevronDoubleRightIcon,
+  ChevronDownIcon,
+} from "@heroicons/react/24/outline";
 import {
   Disclosure,
   DisclosureButton,
@@ -135,9 +139,11 @@ const Sidebar: React.FC<SidebarProps> = (sidebar) => {
             className="py-2 z-30 rounded-full px-2 bg-slate-700 text-white flex items-center justify-center"
           >
             <span className="material-symbols-outlined cursor-pointer">
-              {iconsOpen
-                ? "keyboard_double_arrow_right"
-                : "keyboard_double_arrow_left"}
+              {iconsOpen ? (
+                <ChevronDoubleRightIcon className="h-6 w-6" />
+              ) : (
+                <ChevronDoubleLeftIcon className="h-6 w-6" />
+              )}
             </span>
           </button>
           <span

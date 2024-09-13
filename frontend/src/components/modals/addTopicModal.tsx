@@ -23,13 +23,29 @@ import { useContext, useEffect, useRef, useState } from "react";
 import Slider from "react-slick";
 import { ChevronLeftIcon, ChevronRightIcon } from "@heroicons/react/16/solid";
 import type { LazyLoadTypes } from "react-slick";
-import { TopicModalProps } from "../../types/components";
-import { Dialog, DialogBackdrop, DialogPanel } from "@headlessui/react";
+import {
+  CurrentObject,
+  ErrorObject,
+  QuestionObject,
+  TopicModalProps,
+} from "../../types/components";
+import {
+  Dialog,
+  DialogBackdrop,
+  DialogPanel,
+  Popover,
+  PopoverButton,
+  PopoverPanel,
+} from "@headlessui/react";
 import { SunEditorOptions } from "suneditor/src/options";
 import { apiCall } from "../../API/login";
 import { MainContext } from "../../contexts/mainContextProvider";
 import DisplayContent from "./displayContent";
-import { ArrowUpIcon } from "@heroicons/react/24/outline";
+import {
+  FolderIcon,
+  PaperClipIcon,
+  XMarkIcon,
+} from "@heroicons/react/24/outline";
 import GoogleDriveUpload from "../functional/googleDriveUpload";
 
 const sunEditorOptions: SunEditorOptions = {
@@ -81,6 +97,11 @@ const sunEditorOptions: SunEditorOptions = {
   ],
 };
 
+const createEmptyFileList = () => {
+  const dataTransfer = new DataTransfer();
+  return dataTransfer.files;
+};
+
 export default function AddTopicModal(props: TopicModalProps) {
   const { open, setOpen } = props;
   const context = useContext(MainContext);
@@ -91,50 +112,58 @@ export default function AddTopicModal(props: TopicModalProps) {
 
   const { types, titles, questions, setTypes, setTitles, setQuestions } =
     context;
-  const [isOpen, setIsOpen] = useState(false);
-  const [currentObject, setCurrentObject] = useState({
+  const [isOpen, setIsOpen] = useState<boolean>(false);
+  const [currentObject, setCurrentObject] = useState<CurrentObject>({
     typeId: "",
     titleId: "",
     questionId: "",
   });
 
   // selected
-  const [selectedType, setSelectedType] = useState("");
-  const [selectedTitle, setSelectedTitle] = useState("");
-  const [selectedQuestion, setSelectedQuestion] = useState("");
+  const [selectedType, setSelectedType] = useState<string>("");
+  const [selectedTitle, setSelectedTitle] = useState<string>("");
+  const [selectedQuestion, setSelectedQuestion] = useState<string>("");
 
   // add states
-  const [addType, setAddType] = useState("");
-  const [addTitle, setAddTitle] = useState("");
-  const [addQuestion, setAddQuestion] = useState({
+  const [addType, setAddType] = useState<string>("");
+  const [addTitle, setAddTitle] = useState<string>("");
+  const [addQuestion, setAddQuestion] = useState<QuestionObject>({
     question: "",
     answer: "",
-    attachments: [],
+    attachments: [], // attachments to be added inside a question
   });
-  const [addTypeModel, setAddTypeModel] = useState(false);
-  const [addTitleModel, setAddTitleModel] = useState(false);
+  const [addTypeModel, setAddTypeModel] = useState<boolean>(false);
+  const [addTitleModel, setAddTitleModel] = useState<boolean>(false);
 
   // edit states
-  const [editType, setEditType] = useState("");
-  const [editTitle, setEditTitle] = useState("");
-  const [editTypeModel, setEditTypeModel] = useState(false);
-  const [editTitleModel, setEditTitleModel] = useState(false);
+  const [editType, setEditType] = useState<string>("");
+  const [editTitle, setEditTitle] = useState<string>("");
+  const [editTypeModel, setEditTypeModel] = useState<boolean>(false);
+  const [editTitleModel, setEditTitleModel] = useState<boolean>(false);
 
-  const [attachments, setAttachments] = useState<string[]>([]);
-  const [googleDriveModel, setGoogleDriveModel] = useState(false);
+  const [googleDriveModel, setGoogleDriveModel] = useState<boolean>(false);
+  const emptyFileList = createEmptyFileList();
+  const [inputFiles, setInputFiles] = useState<FileList>(emptyFileList); // attachments to be pushed to server
+  const [areFilesUploaded, setAreFilesUploaded] = useState<boolean>(false);
 
   // error
-  const [error, setError] = useState({
+  const [error, setError] = useState<ErrorObject>({
     typeError: false,
     titleError: false,
     questionError: false,
   });
+
   useEffect(() => {
     if (selectedQuestion) {
       console.log("");
     }
   }, [selectedQuestion]);
 
+  useEffect(() => {
+    console.log("Input files:", inputFiles);
+  }, [inputFiles]);
+
+  // slider settings
   const sliderDetails = [
     { name: "Type", id: "type" },
     { name: "Title", id: "title" },
@@ -155,7 +184,6 @@ export default function AddTopicModal(props: TopicModalProps) {
       setCurrentSlide(next);
     },
   };
-  // slider settings
   const sliderRef = useRef<Slider>(null);
   const [currentSlide, setCurrentSlide] = useState(0);
 
@@ -164,7 +192,7 @@ export default function AddTopicModal(props: TopicModalProps) {
       if (error.typeError) {
         return;
       }
-      const typeLinkGen = addType.toLowerCase().replace(" ", "-");
+      const typeLinkGen = addType.toLowerCase().split(" ").join("-");
       const newType = {
         typeName: addType,
         typeLink: typeLinkGen,
@@ -181,12 +209,13 @@ export default function AddTopicModal(props: TopicModalProps) {
       console.log("Error adding new type: ", error);
     }
   };
+
   const addNewTitle = async () => {
     try {
       if (error.titleError) {
         return;
       }
-      const titleLinkGen = addTitle.toLowerCase().replace(" ", "-");
+      const titleLinkGen = addTitle.toLowerCase().split(" ").join("-");
       const newTitle = {
         title: addTitle,
         titleLink: titleLinkGen,
@@ -198,15 +227,16 @@ export default function AddTopicModal(props: TopicModalProps) {
       setTitles(response.data.list);
       setCurrentObject((prev) => ({
         ...prev,
-        titleId: response.data.title._id,
+        titleId: response.data.newTitle._id,
       }));
     } catch (error) {
       console.log("Error adding new type: ", error);
     }
   };
+
   const addNewQuestion = async () => {
     try {
-      if (error.questionError) {
+      if (error.questionError || !addQuestion.question || !addQuestion.answer) {
         return;
       }
       const quesLinkGen = addQuestion.question.toLowerCase().replace(" ", "-");
@@ -225,10 +255,19 @@ export default function AddTopicModal(props: TopicModalProps) {
       );
       setSelectedQuestion(response.data.newQuestion.question);
       setQuestions(response.data.list);
+      setIsOpen(false);
       setCurrentObject((prev) => ({
         ...prev,
         questionId: response.data.newQuestion._id,
       }));
+      const emptyList = createEmptyFileList();
+      setInputFiles(emptyList);
+      setAddQuestion({
+        question: "",
+        answer: "",
+        attachments: [],
+      });
+      // setAttachments(emptyList);
     } catch (error) {
       console.log("Error adding new type: ", error);
     }
@@ -292,7 +331,7 @@ export default function AddTopicModal(props: TopicModalProps) {
                   <div className="w-full slider-container ">
                     <Slider className="h-full" ref={sliderRef} {...settings}>
                       <div className={`p-5 overflow-y-auto`}>
-                        <p>Choose a type</p>
+                        <div>Please choose a type</div>
                         <div className="slide-content relative flex items-center justify-center h-[70vh]">
                           <div className="relative text-center">
                             <select
@@ -326,7 +365,7 @@ export default function AddTopicModal(props: TopicModalProps) {
                                 ))}
                             </select>
                             {props.add && !props.edit && (
-                              <div className="absolute right-0 mt-2 cursor-pointer bg-black text-white flex items-center justify-center py-2 px-2 rounded-full">
+                              <div className="absolute right-0 mt-2 cursor-pointer bg-primary text-white flex items-center justify-center py-2 px-2 rounded-full">
                                 <span
                                   className="material-symbols-outlined"
                                   onClick={() => setAddTypeModel(!addTypeModel)}
@@ -389,7 +428,7 @@ export default function AddTopicModal(props: TopicModalProps) {
                                   )}
                                   <div className="flex gap-2 justify-end">
                                     <button
-                                      className="border bg-black text-white py-1 px-3 rounded-md"
+                                      className="border bg-primary text-white py-1 px-3 rounded-md"
                                       onClick={() => {
                                         setAddType("");
                                         setSelectedType("");
@@ -399,7 +438,7 @@ export default function AddTopicModal(props: TopicModalProps) {
                                       Cancel
                                     </button>
                                     <button
-                                      className="border bg-black text-white py-1 px-3 rounded-md"
+                                      className="border bg-primary text-white py-1 px-3 rounded-md"
                                       onClick={() => {
                                         if (addType) {
                                           if (
@@ -430,9 +469,9 @@ export default function AddTopicModal(props: TopicModalProps) {
                         </div>
                       </div>
                       <div className={`p-5 overflow-y-auto`}>
-                        <p>Please Choose a Title</p>
+                        <div>Please Choose a Title</div>
                         <div className="slide-content relative flex items-center justify-center h-[70vh]">
-                          <div className="text-center">
+                          <div className="text-center relative">
                             <select
                               value={selectedTitle}
                               onChange={(e) => {
@@ -470,7 +509,7 @@ export default function AddTopicModal(props: TopicModalProps) {
                                   ))}
                             </select>
                             {props.add && !props.edit && (
-                              <div className="absolute right-0 mt-2 cursor-pointer bg-black text-white flex items-center justify-center py-2 px-2 rounded-full">
+                              <div className="absolute right-0 mt-2 cursor-pointer bg-primary text-white flex items-center justify-center py-2 px-2 rounded-full">
                                 <span
                                   className="material-symbols-outlined"
                                   onClick={() =>
@@ -483,7 +522,7 @@ export default function AddTopicModal(props: TopicModalProps) {
                             )}
                             {!props.add && props.edit && (
                               <>
-                                <div className="absolute right-0 mt-2 cursor-pointer bg-black text-white flex items-center justify-center py-1 px-2 rounded-md">
+                                <div className="absolute right-0 mt-2 cursor-pointer bg-primary text-white flex items-center justify-center py-1 px-2 rounded-md">
                                   {editType ? (
                                     <button
                                       onClick={() =>
@@ -536,7 +575,7 @@ export default function AddTopicModal(props: TopicModalProps) {
                                 )}
                                 <div className="flex gap-2 justify-end">
                                   <button
-                                    className="border bg-black text-white py-1 px-3 rounded-md"
+                                    className="border bg-primary text-white py-1 px-3 rounded-md"
                                     onClick={() => {
                                       setAddTitle("");
                                       setSelectedTitle("");
@@ -546,7 +585,7 @@ export default function AddTopicModal(props: TopicModalProps) {
                                     Cancel
                                   </button>
                                   <button
-                                    className="border bg-black text-white py-1 px-3 rounded-md"
+                                    className="border bg-primary text-white py-1 px-3 rounded-md"
                                     onClick={() => {
                                       if (addTitle) {
                                         if (
@@ -592,16 +631,58 @@ export default function AddTopicModal(props: TopicModalProps) {
                                       key={`ques${question._id}`}
                                       className={`${
                                         props.edit ? "cursor-pointer" : ""
-                                      } bg-white shadow-md p-2 border mb-3`}
+                                      }  flex bg-white shadow-md p-2 border mb-3 relative`}
                                     >
-                                      <h5 className="text-md font-semibold mb-2">
-                                        {question.question}
-                                      </h5>
-                                      <p className="text-sm font-extralight">
-                                        <DisplayContent
-                                          content={JSON.parse(question.answer)}
-                                        />
-                                      </p>
+                                      <div className={`w-[90%] `}>
+                                        <h5 className="text-md font-semibold mb-2">
+                                          {question.question}
+                                        </h5>
+                                        <p className="text-sm font-extralight">
+                                          <DisplayContent
+                                            content={JSON.parse(
+                                              question.answer
+                                            )}
+                                          />
+                                        </p>
+                                      </div>
+                                      <div className="w-[10%]">
+                                        {question.attachments.length > 0 && (
+                                          <Popover className="relative">
+                                            <PopoverButton>
+                                              <PaperClipIcon className="h-6 w-6" />
+                                            </PopoverButton>
+                                            <PopoverPanel
+                                              anchor="bottom"
+                                              className="flex flex-col z-[100] bg-white rounded-md border-[1px] border-gray-300 m-1 -translate-x-[20px]"
+                                            >
+                                              {question.attachments.map(
+                                                (file) => {
+                                                  console.log(file);
+                                                  const urlParams =
+                                                    new URLSearchParams(
+                                                      new URL(file).search
+                                                    );
+                                                  const fileId =
+                                                    urlParams.get("id");
+                                                  return (
+                                                    <div
+                                                      key={file}
+                                                      className="m-2 flex"
+                                                    >
+                                                      <img
+                                                        src={`https://drive.google.com/file/d/${fileId}/view`}
+                                                        alt={file}
+                                                        className="h-auto w-12 "
+                                                      />
+                                                      {/* <XMarkIcon className="w-5 h-5 rounded-full p-1 border-[1px] border-gray-300 bg-white cursor-pointer" /> */}
+                                                    </div>
+                                                  );
+                                                }
+                                              )}
+                                            </PopoverPanel>
+                                          </Popover>
+                                        )}
+                                      </div>
                                     </div>
                                   );
                                 })}
@@ -610,14 +691,28 @@ export default function AddTopicModal(props: TopicModalProps) {
                         <div className="flex justify-end">
                           <button
                             onClick={() => setIsOpen(true)}
-                            className="border py-1 px-4 bg-black text-white font-medium rounded-md"
+                            className="border py-1 px-4 bg-primary text-white font-medium rounded-md"
                           >
                             Add +
                           </button>
                         </div>
                         <Dialog
                           open={isOpen}
-                          onClose={() => setIsOpen(false)}
+                          onClose={() => {
+                            // clear question
+                            const nullQuestion = {
+                              question: "",
+                              answer: "",
+                              attachments: [],
+                            };
+                            setAddQuestion(nullQuestion);
+                            // clear attachments
+                            const emptyList = createEmptyFileList();
+                            setInputFiles(emptyList);
+                            // no files are to be uploaded
+                            setAreFilesUploaded(false);
+                            setIsOpen(false);
+                          }}
                           className="relative z-50"
                         >
                           <div className="fixed inset-0 flex items-center justify-center mx-auto  p-4">
@@ -638,13 +733,86 @@ export default function AddTopicModal(props: TopicModalProps) {
                                       }));
                                     }}
                                   />
+                                  {inputFiles.length > 0 && (
+                                    <div className="border outline-none cursor-pointer px-2 flex items-center justify-center rounded-sm">
+                                      <Popover className="relative">
+                                        <PopoverButton>
+                                          <FolderIcon className="h-5 w-5" />
+                                        </PopoverButton>
+                                        <PopoverPanel
+                                          anchor="bottom"
+                                          className="flex flex-col z-[100] bg-white rounded-md border-[1px] border-gray-300 m-1 -translate-x-[20px] translate-y-2.5"
+                                        >
+                                          {Array.from(inputFiles).map(
+                                            (file, index) => {
+                                              const link =
+                                                URL.createObjectURL(file);
+                                              return (
+                                                <div
+                                                  key={link}
+                                                  className="m-2 flex"
+                                                >
+                                                  <img
+                                                    src={link}
+                                                    alt={link}
+                                                    className="h-auto w-12"
+                                                  />
+                                                  <XMarkIcon
+                                                    onClick={() => {
+                                                      const newArr = Array.from(
+                                                        inputFiles
+                                                      ).filter(
+                                                        (_, fileIndex) =>
+                                                          fileIndex !== index
+                                                      );
+                                                      const dataTransfer =
+                                                        new DataTransfer();
+
+                                                      newArr.forEach((file) =>
+                                                        dataTransfer.items.add(
+                                                          file
+                                                        )
+                                                      );
+                                                      setInputFiles(
+                                                        dataTransfer.files
+                                                      );
+                                                    }}
+                                                    className="w-4 h-4 cursor-pointer"
+                                                  />
+                                                </div>
+                                              );
+                                            }
+                                          )}
+                                        </PopoverPanel>
+                                      </Popover>
+                                    </div>
+                                  )}
                                   <div
-                                    onClick={() =>
-                                      setGoogleDriveModel(!googleDriveModel)
-                                    }
+                                    onClick={() => {
+                                      const item =
+                                        document.getElementById("addFiles");
+                                      if (item) {
+                                        item.click();
+                                      }
+                                    }}
                                     className="border outline-none cursor-pointer px-2 flex items-center justify-center rounded-sm"
                                   >
-                                    <ArrowUpIcon className="h-5 w-5" />
+                                    <PaperClipIcon className="h-5 w-5" />
+                                    <input
+                                      id="addFiles"
+                                      type="file"
+                                      multiple
+                                      className="hidden"
+                                      onChange={(e) => {
+                                        if (e.target.files) {
+                                          setInputFiles(e.target.files);
+                                          console.log(
+                                            "Files Added to state: ",
+                                            e.target.files
+                                          );
+                                        }
+                                      }}
+                                    />
                                   </div>
                                   <Dialog
                                     className={"relative w-full h-full z-50"}
@@ -656,12 +824,18 @@ export default function AddTopicModal(props: TopicModalProps) {
                                     <div className="bg-gray-500 bg-opacity-15 fixed inset-0 p-16 flex items-center justify-center mx-auto">
                                       <DialogPanel
                                         className={
-                                          "w-auto h-auto p-10 bg-white border border-gray-300 rounded-lg shadow-md"
+                                          "w-auto h-[200px] p-10 bg-white border border-gray-300 rounded-lg shadow-md"
                                         }
                                       >
                                         <GoogleDriveUpload
-                                          attachments={attachments}
-                                          setAttachments={setAttachments}
+                                          addQuestion={addQuestion}
+                                          setAddQuestion={setAddQuestion}
+                                          inputFiles={inputFiles}
+                                          areFilesUploaded={areFilesUploaded}
+                                          setAreFilesUploaded={
+                                            setAreFilesUploaded
+                                          }
+                                          addNewQuestion={addNewQuestion}
                                         />
                                       </DialogPanel>
                                     </div>
@@ -682,22 +856,38 @@ export default function AddTopicModal(props: TopicModalProps) {
                               </div>
                               <div className="flex justify-end gap-4">
                                 <button
-                                  className="border bg-black text-white py-1 px-3 rounded-md"
+                                  className="border bg-primary text-white py-1 px-3 rounded-md"
                                   onClick={() => {
-                                    setAddQuestion((prev) => ({
-                                      ...prev,
+                                    const nullQuestion = {
+                                      question: "",
                                       answer: "",
-                                    }));
+                                      attachments: [],
+                                    };
+                                    setAddQuestion(nullQuestion);
+                                    const nullList = createEmptyFileList();
+                                    setInputFiles(nullList);
                                     setIsOpen(false);
                                   }}
                                 >
                                   Cancel
                                 </button>
                                 <button
-                                  className="border bg-black text-white py-1 px-3 rounded-md"
+                                  className="border bg-primary text-white py-1 px-3 rounded-md"
                                   onClick={() => {
-                                    addNewQuestion();
-                                    setIsOpen(false);
+                                    if (
+                                      addQuestion.question &&
+                                      addQuestion.answer
+                                    ) {
+                                      if (inputFiles.length > 0) {
+                                        setGoogleDriveModel(!googleDriveModel);
+                                        // 1.Google drive modal
+                                        // 2. Add image(s) --> window(open) --> Google drive upload
+                                        // 3. CALL API
+                                      } else {
+                                        // CALL API
+                                        addNewQuestion();
+                                      }
+                                    }
                                   }}
                                 >
                                   Save
@@ -730,16 +920,49 @@ export default function AddTopicModal(props: TopicModalProps) {
                                       key={`ques${question._id}`}
                                       className={`${
                                         props.edit ? "cursor-pointer" : ""
-                                      } bg-white shadow-md p-2 border mb-3`}
+                                      }  flex bg-white shadow-md p-2 border mb-3 relative`}
                                     >
-                                      <h5 className="text-md font-semibold mb-2">
-                                        {question.question}
-                                      </h5>
-                                      <p className="text-sm font-extralight">
-                                        <DisplayContent
-                                          content={JSON.parse(question.answer)}
-                                        />
-                                      </p>
+                                      <div className={`w-[90%] `}>
+                                        <h5 className="text-md font-semibold mb-2">
+                                          {question.question}
+                                        </h5>
+                                        <p className="text-sm font-extralight">
+                                          <DisplayContent
+                                            content={JSON.parse(
+                                              question.answer
+                                            )}
+                                          />
+                                        </p>
+                                      </div>
+                                      <div className="w-[10%]">
+                                        {question.attachments.length > 0 && (
+                                          <Popover className="relative">
+                                            <PopoverButton>
+                                              <PaperClipIcon className="h-6 w-6" />
+                                            </PopoverButton>
+                                            <PopoverPanel
+                                              anchor="bottom"
+                                              className="flex flex-col z-[100] bg-white rounded-md border-[1px] border-gray-300 m-1 -translate-x-[20px]"
+                                            >
+                                              {question.attachments.map(
+                                                (file) => (
+                                                  <div
+                                                    key={file}
+                                                    className="m-2 flex"
+                                                  >
+                                                    <img
+                                                      src={file}
+                                                      alt={file}
+                                                      className="h-auto w-12 "
+                                                    />
+                                                    {/* <XMarkIcon className="w-5 h-5 rounded-full p-1 border-[1px] border-gray-300 bg-white cursor-pointer" /> */}
+                                                  </div>
+                                                )
+                                              )}
+                                            </PopoverPanel>
+                                          </Popover>
+                                        )}
+                                      </div>
                                     </div>
                                   );
                                 })}
@@ -748,7 +971,6 @@ export default function AddTopicModal(props: TopicModalProps) {
                       </div>
                     </Slider>
                   </div>
-                  {/* </div> */}
                   <div className="-mt-1 w-full flex items-center justify-between">
                     <span>
                       <button

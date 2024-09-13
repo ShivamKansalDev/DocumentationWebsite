@@ -3,6 +3,7 @@ import axios, { AxiosHeaders } from "axios";
 
 export const apiCall = axios.create({
   baseURL: "http://127.0.0.1:3001/api/",
+  // baseURL: "https://documentation-website-six.vercel.app/api/",
   headers: {
     "Content-Type": "application/json",
   },
